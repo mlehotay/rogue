@@ -68,6 +68,7 @@ extern long level_points[];
 extern boolean being_held;
 extern char *fruit, *you_can_move_again;
 extern boolean sustain_strength;
+extern boolean use_color;
 
 quaff()
 {
@@ -166,7 +167,7 @@ quaff()
 			}
 			break;
 		case SEE_INVISIBLE:
-			sprintf(buf, "hmm, this potion tastes like %sjuice", fruit);
+			sprintf(buf, "hmm, this potion tastes like %s juice", fruit);
 			message(buf, 0);
 			if (blind) {
 				unblind();
@@ -464,7 +465,7 @@ hold_monster()
 
 tele()
 {
-	mvaddch(rogue.row, rogue.col, get_dungeon_char(rogue.row, rogue.col));
+	mvaddcch(rogue.row, rogue.col, get_dungeon_char(rogue.row, rogue.col));
 
 	if (cur_room >= 0) {
 		darken_room(cur_room);
@@ -478,17 +479,37 @@ hallucinate()
 {
 	object *obj, *monster;
 	short ch;
+	static char steadychars[10] = "";
+	color_char cch;
 
 	if (blind) return;
 
-	obj = level_objects.next_object;
+	/* NS - initialize string of non-hallucinating terrain chars.
+	 *      This approach lets us change the screen chars to whatever
+	 *      we want in room.c without having to change them here too.
+	 *		Honestly though, I'm not sure why this is necessary at all
+	 *		as how can an object ever have a terrain-type char?
+	 */
+	if (steadychars[0] == '\0') {
+		steadychars[0] = get_terrain_char(NOTHING).b8.ch;
+		steadychars[1] = get_terrain_char(FLOOR).b8.ch;
+		steadychars[2] = get_terrain_char(TUNNEL).b8.ch;
+		steadychars[3] = get_terrain_char(DOOR).b8.ch;
+		steadychars[4] = '\0';
+	}
 
+	obj = level_objects.next_object;
 	while (obj) {
 		ch = mvinch(obj->row, obj->col);
 		if (((ch < 'A') || (ch > 'Z')) &&
 			((obj->row != rogue.row) || (obj->col != rogue.col)))
-		if ((ch != ' ') && (ch != '.') && (ch != '#') && (ch != '+')) {
-			addch(gr_obj_char());
+//		if ((ch != ' ') && (ch != '.') && (ch != '\xB1') && (ch != '+')) {
+		if (strchr(steadychars, ch) == 0) {
+			cch.b16 = gr_obj_char(-1).b16;
+			if (!use_color) {
+				cch.b8.color = MAKE_COLOR(WHITE,BLACK);
+			}
+			addcch(cch);
 		}
 		obj = obj->next_object;
 	}
@@ -530,7 +551,7 @@ relight()
 	} else {
 		light_up_room(cur_room);
 	}
-	mvaddch(rogue.row, rogue.col, rogue.fchar);
+	mvaddcch(rogue.row, rogue.col, get_rogue_char());
 }
 
 take_a_nap()
@@ -562,7 +583,7 @@ go_blind()
 		monster = level_monsters.next_monster;
 
 		while (monster) {
-			mvaddch(monster->row, monster->col, monster->trail_char);
+			mvaddcch(monster->row, monster->col, monster->trail_char);
 			monster = monster->next_monster;
 		}
 	}
@@ -575,7 +596,7 @@ go_blind()
 			}
 		}
 	}
-	mvaddch(rogue.row, rogue.col, rogue.fchar);
+	mvaddcch(rogue.row, rogue.col, get_rogue_char());
 }
 
 char *
@@ -585,7 +606,7 @@ get_ench_color()
 		return(id_potions[get_rand(0, POTIONS-1)].title);
 	} else if (con_mon) {
 		return("red ");
-	} 
+	}
 	return("blue ");
 }
 

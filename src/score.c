@@ -55,14 +55,19 @@
 extern char *login_name;
 extern char *m_names[];
 extern short cur_level, max_level;
-extern boolean score_only, no_skull, msg_cleared;
+extern boolean score_only, display_skull, msg_cleared, use_color;
 extern char *byebye_string;
 
+/*  NS:  Added color support
+ */
 killed_by(monster, other)
 object *monster;
 short other;
 {
 	char buf[128];
+	char gold[128];
+	color_char boxchars[6];
+	byte color;
 
 	md_ignore_signals();
 
@@ -97,16 +102,18 @@ short other;
 		}
 		(void) strcat(buf, m_names[monster->m_char - 'A']);
 	}
-	(void) strcat(buf, " with ");
-	sprintf(buf+strlen(buf), "%ld gold", rogue.gold);
-	if ((!other) && (!no_skull)) {
+	sprintf(gold, "%ld gold", rogue.gold);
+
+	if ((!other) && (display_skull)) {
 		clear();
-		mvaddstr(4, 32, "__---------__");
-		mvaddstr(5, 30, "_~             ~_");
-		mvaddstr(6, 29, "/                 \\");
-		mvaddstr(7, 28, "~                   ~");
-		mvaddstr(8, 27, "/                     \\");
-		mvaddstr(9, 27, "|    XXXX     XXXX    |");
+
+#if RIP_TOMBSTONE == 0	/* classic skull */
+		mvaddstr(4,  32, "__---------__");
+		mvaddstr(5,  30, "_~             ~_");
+		mvaddstr(6,  29, "/                 \\");
+		mvaddstr(7,  28, "~                   ~");
+		mvaddstr(8,  27, "/                     \\");
+		mvaddstr(9,  27, "|    XXXX     XXXX    |");
 		mvaddstr(10, 27, "|    XXXX     XXXX    |");
 		mvaddstr(11, 27, "|    XXX       XXX    |");
 		mvaddstr(12, 28, "\\         @         /");
@@ -117,8 +124,33 @@ short other;
 		mvaddstr(17, 30, "|  ^^^^^^^^^^^  |");
 		mvaddstr(18, 31, "\\_           _/");
 		mvaddstr(19, 33, "~---------~");
+
 		center(21, login_name);
+		(void) strcat(buf, " with ");
+		sprintf(buf+strlen(buf), "%s", gold);
 		center(22, buf);
+
+#else /* modern tombstone, pulled from PC-Rogue with apologies */
+		boxchars[0] = get_terrain_char(HORWALL);
+		boxchars[1] = get_terrain_char(VERTWALL);
+		boxchars[2] = get_terrain_char(ULCORNER);
+		boxchars[3] = get_terrain_char(URCORNER);
+		boxchars[4] = get_terrain_char(LLCORNER);
+		boxchars[5] = get_terrain_char(LRCORNER);
+
+		draw_box(boxchars, 4, 25, 19, 30);
+		center( 8, "R E S T");
+		center( 9, "I N");
+		center(10, "P E A C E");
+		center(13, login_name);
+		center(14, buf);
+		center(16, gold);
+		/* NS: ought to put the date here for effect. */
+	    center_in_color(21, "  *    *      * ", MAKE_COLOR(RED,BLACK));
+	    center_in_color(22, "___\\/(\\/)/(\\/ \\\\(//)\\)\\/(//)\\\\)//(\\__",
+	    				MAKE_COLOR(GREEN,BLACK));
+#endif
+
 	} else {
 		message(buf, 0);
 	}
@@ -524,15 +556,27 @@ boolean st;
 	return(r);
 }
 
+
 center(row, buf)
 short row;
 char *buf;
 {
+	center_in_color(row, buf, MAKE_COLOR(WHITE,BLACK));
+}
+
+
+center_in_color(row, buf, color)
+short row;
+char *buf;
+byte color;
+{
 	short margin;
 
 	margin = ((DCOLS - strlen(buf)) / 2);
-	mvaddstr(row, margin, buf);
+	mvaddstr_in_color(row, margin, buf,
+					  (use_color) ? color : MAKE_COLOR(WHITE,BLACK));
 }
+
 
 sf_error()
 {

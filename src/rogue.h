@@ -47,19 +47,30 @@
  *         gain or profit.
  */
 
-#define boolean char
+typedef unsigned char boolean;
+typedef unsigned char byte;
 
-#define NOTHING		((unsigned short)     0)
-#define OBJECT		((unsigned short)    01)
-#define MONSTER		((unsigned short)    02)
-#define STAIRS		((unsigned short)    04)
-#define HORWALL		((unsigned short)   010)
-#define VERTWALL	((unsigned short)   020)
-#define DOOR		((unsigned short)   040)
-#define FLOOR		((unsigned short)  0100)
-#define TUNNEL		((unsigned short)  0200)
-#define TRAP		((unsigned short)  0400)
-#define HIDDEN		((unsigned short) 01000)
+
+#define NOTHING		((unsigned short)       0)
+#define OBJECT		((unsigned short)      01)
+#define MONSTER		((unsigned short)      02)
+#define STAIRS		((unsigned short)      04)
+#define HORWALL		((unsigned short)     010)
+#define VERTWALL	((unsigned short)     020)
+#define DOOR		((unsigned short)     040)
+#define FLOOR		((unsigned short)    0100)
+#define TUNNEL		((unsigned short)    0200)
+#define TRAP		((unsigned short)    0400)
+#define ULCORNER    ((unsigned short)   01000)
+#define URCORNER    ((unsigned short)   02000)
+#define LLCORNER    ((unsigned short)   04000)
+#define LRCORNER    ((unsigned short)  010000)
+#define TERRAINTYPES  14  /* don't count HIDDEN */
+
+#define HIDDEN		((unsigned short) 0100000)
+#define ANYWALL     (HORWALL | VERTWALL)
+#define ANYCORNER   (ULCORNER | URCORNER | LLCORNER | LRCORNER)
+#define ANYROOMSIDE (ANYWALL | ANYCORNER)
 
 #define ARMOR		((unsigned short)   01)
 #define WEAPON		((unsigned short)   02)
@@ -71,6 +82,8 @@
 #define RING		((unsigned short) 0200)
 #define AMULET		((unsigned short) 0400)
 #define ALL_OBJECTS	((unsigned short) 0777)
+#define OBJECTTYPES  9
+
 
 #define LEATHER 0
 #define RINGMAIL 1
@@ -189,6 +202,8 @@
 #define GOLD_PERCENT 46
 
 #define MAX_OPT_LEN 40
+#define MAX_OBJ_NAME 40
+
 
 struct id {
 	short value;
@@ -196,6 +211,47 @@ struct id {
 	char *real;
 	unsigned short id_status;
 };
+
+
+
+/*   Support for color GUI...
+ */
+#define BLACK			0x00
+#define BLUE			0x01
+#define GREEN			0x02
+#define CYAN			0x03
+#define RED				0x04
+#define MAGENTA			0x05
+#define YELLOW			0x06
+#define WHITE			0x07
+#define GRAY			0x08
+#define BRIGHT_BLUE		0x09
+#define BRIGHT_GREEN	0x0A
+#define BRIGHT_CYAN		0x0B
+#define BRIGHT_RED		0x0C
+#define BRIGHT_MAGENTA	0x0D
+#define BRIGHT_YELLOW	0x0E
+#define BRIGHT_WHITE	0x0F
+
+union _colorChar {
+	struct {
+		byte color;
+		char ch;
+	} b8;
+	unsigned short b16;
+};
+typedef union _colorChar color_char;
+
+#define MAKE_COLOR(fg,bg)			(byte)(((fg) & 0x0F) | (((bg) & 0x0F) << 4))
+#define MAKE_COLOR_CHAR(fg,bg,ch)	(unsigned short) \
+				(((unsigned short) (ch) << 8) | MAKE_COLOR((fg),(bg)))
+
+#define INVERT_COLOR(col)			(byte)( (((col) >> 4) & 0x0F) \
+										  | (((col) << 4) & 0xF0) )
+#define BGCOLOR_OF(col)				(byte)(((col) >> 4) & 0x0F)
+#define FGCOLOR_OF(col)				(byte)((col) & 0x0F)
+
+
 
 /* The following #defines provide more meaningful names for some of the
  * struct object fields that are used for monsters.  This, since each monster
@@ -211,11 +267,11 @@ struct id {
 #define m_hit_chance class
 #define stationary_damage identified
 #define drop_percent which_kind
-#define trail_char d_enchant
+#define trail_char cchar
 #define slowed_toggle quiver
 #define moves_confused hit_enchant
 #define nap_length picked_up
-#define disguise what_is
+#define disguise dchar_ix
 #define next_monster next_object
 
 struct obj {				/* comment is monster meaning */
@@ -231,13 +287,15 @@ struct obj {				/* comment is monster meaning */
 	unsigned short which_kind; /* item carry/drop % */
 	short o_row, o_col, o;	/* o is how many times stuck at o_row, o_col */
 	short row, col;			/* current row, col */
-	short d_enchant;		/* room char when detect_monster */
+	short d_enchant;
 	short quiver;			/* monster slowed toggle */
 	short trow, tcol;		/* target row, col */
 	short hit_enchant;		/* how many moves is confused */
-	unsigned short what_is;	/* imitator's charactor (?!%: */
+	unsigned short what_is;
 	short picked_up;		/* sleep from wand of sleep */
 	unsigned short in_use_flags;
+	color_char cchar;		/* character underneath monster */
+	int dchar_ix;	   		/* imitator's character index */
 	struct obj *next_object;	/* next monster */
 };
 
@@ -252,7 +310,9 @@ typedef struct obj object;
 #define INIT_EXP 1,0
 #define INIT_PACK {0}
 #define INIT_GOLD 0
+#define INIT_CHAR_COLOR MAKE_COLOR(BRIGHT_YELLOW, BLACK)
 #define INIT_CHAR '@'
+#define INIT_DOSCHAR '\x1'
 #define INIT_MOVES 1250
 
 struct fightr {
@@ -268,7 +328,9 @@ struct fightr {
 	short exp;
 	long exp_points;
 	short row, col;
-	short fchar;
+	byte color;
+	char fchar;
+	char dosfchar;
 	short moves_left;
 };
 
@@ -325,11 +387,21 @@ typedef struct rm room;
 #define STAT_LABEL 0200
 #define STAT_ALL 0377
 
-#define PARTY_TIME 10	/* one party somewhere in each 10 level span */
+#define STAT_LABELCOLOR		MAKE_COLOR(BRIGHT_CYAN, BLACK)
+#define STAT_OKCOLOR		MAKE_COLOR(BRIGHT_CYAN, BLACK)
+#define STAT_WARNCOLOR		MAKE_COLOR(BRIGHT_YELLOW, BLACK)
+#define STAT_DANGERCOLOR	MAKE_COLOR(BRIGHT_RED, BLACK)
+
+
+// #define PARTY_TIME 10 	/* (NS - this is unused) one party somewhere in each 10 level span */
+#define PARTY_PCT 		7	/* NS - % of levels having a party room */
+#define BIG_PARTY_PCT	1	/* NS - % of party rooms that are supersized */
 
 #define MAX_TRAPS 10	/* maximum traps per level */
 
 #define HIDE_PERCENT 12
+
+#define FRUIT_TYPE "mango"		/* NS - more appetizing than slime molds */
 
 struct tr {
 	short trap_type;
@@ -424,7 +496,10 @@ extern object level_monsters;
 #define FAINT 20
 #define STARVE 0
 
+#define RIP_TOMBSTONE	1	/* 0=White Skull, 1=Color Tombstone */
+
 #define MIN_ROW 1
+
 
 /* external routine declarations.
  */
@@ -463,6 +538,17 @@ long rrandom();
 long lget_number();
 long xxx();
 void byebye(), onintr(), error_save();
+color_char mvincch(short row, short col);
+color_char get_mask_char(register unsigned short mask);
+color_char get_dungeon_char();
+color_char get_terrain_char();
+color_char get_rogue_char();
+color_char gmc_row_col();
+color_char gr_obj_char(int ix);
+color_char gmc();
+int gr_obj_index();
+
+
 
 struct rogue_time {
 	short year;		/* >= 1987 */

@@ -51,6 +51,9 @@
 #include "rogue.h"
 #include "paths.h"
 
+#define MIN(x,y)	(((x) < (y)) ? (x) : (y))
+#define MAX(x,y)	(((x) > (y)) ? (x) : (y))
+
 object level_objects;
 unsigned short dungeon[DROWS][DCOLS];
 short foods = 0;
@@ -68,7 +71,9 @@ fighter rogue = {
 	INIT_GOLD,	/* gold */
 	INIT_EXP,	/* exp level,points */
 	0, 0,		/* row, col */
+	INIT_CHAR_COLOR,  /* for color mode play */
 	INIT_CHAR,	/* char */
+	INIT_DOSCHAR, /* DOS character */
 	INIT_MOVES	/* moves */
 };
 
@@ -89,20 +94,28 @@ struct id id_potions[POTIONS] = {
 {145, "beige \0                          ", "of see invisible ", 0}
 };
 
+
+/*  NS: Each object now has a unique starting name, so that an ANSI
+ *		compiler (such as gcc) will create separate entries in the
+ *		string table.  Otherwise, when we initialize them with
+ *		random names, they'll all wind up with the same name (because
+ *		they point to the same shared string buffer).
+ */
+
 struct id id_scrolls[SCROLS] = {
-{505, "                                   ", "of protect armor ", 0},
-{200, "                                   ", "of hold monster ", 0},
-{235, "                                   ", "of enchant weapon ", 0},
-{235, "                                   ", "of enchant armor ", 0},
-{175, "                                   ", "of identify ", 0},
-{190, "                                   ", "of teleportation ", 0},
- {25, "                                   ", "of sleep ", 0},
-{610, "                                   ", "of scare monster ", 0},
-{210, "                                   ", "of remove curse ", 0},
- {80, "                                   ", "of create monster ",0},
- {25, "                                   ", "of aggravate monster ",0},
-{180, "                                   ", "of magic mapping ", 0},
- {90, "                                   ", "of confuse monster ", 0}
+{505, "string title #1                    ", "of protect armor ", 0},
+{200, "string title #2                    ", "of hold monster ", 0},
+{235, "string title #3                    ", "of enchant weapon ", 0},
+{235, "string title #4                    ", "of enchant armor ", 0},
+{175, "string title #5                    ", "of identify ", 0},
+{190, "string title #6                    ", "of teleportation ", 0},
+ {25, "string title #7                    ", "of sleep ", 0},
+{610, "string title #8                    ", "of scare monster ", 0},
+{210, "string title #9                    ", "of remove curse ", 0},
+ {80, "string title #10                   ", "of create monster ",0},
+ {25, "string title #11                   ", "of aggravate monster ",0},
+{180, "string title #12                   ", "of magic mapping ", 0},
+ {90, "string title #13                   ", "of confuse monster ", 0}
 };
 
 struct id id_weapons[WEAPONS] = {
@@ -127,36 +140,37 @@ struct id id_armors[ARMORS] = {
 };
 
 struct id id_wands[WANDS] = {
-	 {25, "                                 ", "of teleport away ",0},
-	 {50, "                                 ", "of slow monster ", 0},
-	  {8, "                                 ", "of invisibility ",0},
-	 {55, "                                 ", "of polymorph ",0},
-	  {2, "                                 ", "of haste monster ",0},
-	 {20, "                                 ", "of magic missile ",0},
-	 {20, "                                 ", "of cancellation ",0},
-	  {0, "                                 ", "of do nothing ",0},
-	 {35, "                                 ", "of drain life ",0},
-	 {20, "                                 ", "of cold ",0},
-	 {20, "                                 ", "of fire ",0}
+	 {25, "wand title #1                    ", "of teleport away ",0},
+	 {50, "wand title #2                    ", "of slow monster ", 0},
+	  {8, "wand title #3                    ", "of invisibility ",0},
+	 {55, "wand title #4                    ", "of polymorph ",0},
+	  {2, "wand title #5                    ", "of haste monster ",0},
+	 {20, "wand title #6                    ", "of magic missile ",0},
+	 {20, "wand title #7                    ", "of cancellation ",0},
+	  {0, "wand title #8                    ", "of do nothing ",0},
+	 {35, "wand title #9                    ", "of drain life ",0},
+	 {20, "wand title #10                   ", "of cold ",0},
+	 {20, "wand title #11                   ", "of fire ",0}
 };
 
 struct id id_rings[RINGS] = {
-	 {250, "                                 ", "of stealth ",0},
-	 {100, "                                 ", "of teleportation ", 0},
-	 {255, "                                 ", "of regeneration ",0},
-	 {295, "                                 ", "of slow digestion ",0},
-	 {200, "                                 ", "of add strength ",0},
-	 {250, "                                 ", "of sustain strength ",0},
-	 {250, "                                 ", "of dexterity ",0},
-	  {25, "                                 ", "of adornment ",0},
-	 {300, "                                 ", "of see invisible ",0},
-	 {290, "                                 ", "of maintain armor ",0},
-	 {270, "                                 ", "of searching ",0},
+	 {250, "ring title #1                    ", "of stealth ",0},
+	 {100, "ring title #2                    ", "of teleportation ", 0},
+	 {255, "ring title #3                    ", "of regeneration ",0},
+	 {295, "ring title #4                    ", "of slow digestion ",0},
+	 {200, "ring title #5                    ", "of add strength ",0},
+	 {250, "ring title #6                    ", "of sustain strength ",0},
+	 {250, "ring title #7                    ", "of dexterity ",0},
+	  {25, "ring title #8                    ", "of adornment ",0},
+	 {300, "ring title #9                    ", "of see invisible ",0},
+	 {290, "ring title #10                   ", "of maintain armor ",0},
+	 {270, "ring title #11                   ", "of searching ",0},
 };
 
 extern short cur_level, max_level;
 extern short party_room;
 extern boolean is_wood[];
+extern boolean use_color;
 
 put_objects()
 {
@@ -653,7 +667,8 @@ make_party()
 show_objects()
 {
 	object *obj;
-	short mc, rc, row, col;
+	color_char rc;
+	short mc, row, col;
 	object *monster;
 
 	obj = level_objects.next_object;
@@ -666,13 +681,13 @@ show_objects()
 
 		if (dungeon[row][col] & MONSTER) {
 			if (monster = object_at(&level_monsters, row, col)) {
-				monster->trail_char = rc;
+				monster->trail_char.b16 = rc.b16;
 			}
 		}
 		mc = mvinch(row, col);
 		if (((mc < 'A') || (mc > 'Z')) &&
 			((row != rogue.row) || (col != rogue.col))) {
-			mvaddch(row, col, rc);
+			mvaddcch(row, col, rc);
 		}
 		obj = obj->next_object;
 	}
@@ -681,7 +696,8 @@ show_objects()
 
 	while (monster) {
 		if (monster->m_flags & IMITATES) {
-			mvaddch(monster->row, monster->col, (int) monster->disguise);
+			rc.b16 = gr_obj_char(monster->disguise).b16;
+			mvaddcch(monster->row, monster->col, rc);
 		}
 		monster = monster->next_monster;
 	}
@@ -780,4 +796,88 @@ GIL:
 	get_desc(obj, buf);
 	message(buf, 0);
 	(void) add_to_pack(obj, &rogue.pack, 1);
+}
+
+
+
+/* NS: Shows a list of what's been discovered for each of the basic
+ *	   object types.  Under development.
+ */
+
+discovery()
+{
+/*	object *obj;
+	short i = 0, j, maxlen = 0, n;
+	char bwdesc[DCOLS];
+	color_char descs[MAX_PACK_COUNT+1][DCOLS];
+	short row, col;
+	byte letter_color, protect_color, item_color;
+
+	obj = pack->next_object;
+
+	if (!obj) {
+		message("your pack is empty", 0);
+		return;
+	}
+
+	if (use_color) {
+		letter_color = MAKE_COLOR(INV_LETTER_COLOR, BLACK);
+		protect_color = MAKE_COLOR(INV_PROTECT_COLOR, BLACK);
+		item_color = MAKE_COLOR(INV_ITEM_COLOR, BLACK);
+	} else {
+		letter_color = MAKE_COLOR(WHITE,BLACK);
+		protect_color = MAKE_COLOR(WHITE,BLACK);
+		item_color = MAKE_COLOR(WHITE,BLACK);
+	}
+
+	while (obj) {
+		if (obj->what_is & mask) {
+			descs[i][0].b8.color = MAKE_COLOR(WHITE, BLACK);
+			descs[i][0].b8.ch = ' ';
+			descs[i][1].b8.color = letter_color;
+			descs[i][1].b8.ch = obj->ichar;
+			if ((obj->what_is & ARMOR) && obj->is_protected) {
+				descs[i][2].b8.color = protect_color;
+				descs[i][2].b8.ch = '}';
+			} else {
+				descs[i][2].b8.color = letter_color;
+				descs[i][2].b8.ch = ')';
+			}
+			descs[i][3].b8.color = MAKE_COLOR(WHITE, BLACK);
+			descs[i][3].b8.ch = ' ';
+
+			get_desc(obj, bwdesc);
+			(void) colorize(bwdesc, item_color, descs[i]+4);
+			if ((n = strlen(bwdesc)+4) > maxlen) {
+				maxlen = n;
+			}
+		i++;
+		}
+		obj = obj->next_object;
+	}
+	(void) colorize(press_space, MAKE_COLOR(WHITE, BLACK), descs[i++]);
+//	(void) strcpy(descs[i++], press_space);
+	if (maxlen < 27) maxlen = 27;
+	col = DCOLS - (maxlen + 2);
+
+	for (row = 0; ((row < i) && (row < DROWS)); row++) {
+		if (row > 0) {
+			for (j = col; j < DCOLS; j++) {
+				descs[row-1][j-col].b16 = mvincch(row, j).b16;
+			}
+			descs[row-1][j-col].b16 = 0;
+		}
+		mvaddcstr(row, col, descs[row]);
+		clrtoeol();
+	}
+	refresh();
+	wait_for_ack();
+
+	move(0, 0);
+	clrtoeol();
+
+	for (j = 1; ((j < i) && (j < DROWS)); j++) {
+		mvaddcstr(j, col, descs[j-1]);
+	}
+*/
 }

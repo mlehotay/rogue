@@ -98,11 +98,11 @@ throw()
 		un_put_on(weapon);
 	}
 	monster = get_thrown_at_monster(weapon, d, &row, &col);
-	mvaddch(rogue.row, rogue.col, rogue.fchar);
+	mvaddcch(rogue.row, rogue.col, get_rogue_char());
 	refresh();
 
 	if (rogue_can_see(row, col) && ((row != rogue.row) || (col != rogue.col))){
-		mvaddch(row, col, get_dungeon_char(row, col));
+		mvaddcch(row, col, get_dungeon_char(row, col));
 	}
 	if (monster) {
 		wake_up(monster);
@@ -159,28 +159,29 @@ short dir;
 short *row, *col;
 {
 	short orow, ocol;
-	short i, ch;
+	short i;
+	color_char cc;
 
 	orow = *row; ocol = *col;
 
-	ch = get_mask_char(obj->what_is);
+	cc = get_mask_char(obj->what_is);
 
 	for (i = 0; i < 24; i++) {
 		get_dir_rc(dir, row, col, 0);
 		if (	(((*col <= 0) || (*col >= DCOLS-1)) ||
 				(dungeon[*row][*col] == NOTHING)) ||
-				((dungeon[*row][*col] & (HORWALL | VERTWALL | HIDDEN)) &&
+				((dungeon[*row][*col] & (ANYROOMSIDE | HIDDEN)) &&
 					(!(dungeon[*row][*col] & TRAP)))) {
 			*row = orow;
 			*col = ocol;
 			return(0);
 		}
 		if ((i != 0) && rogue_can_see(orow, ocol)) {
-			mvaddch(orow, ocol, get_dungeon_char(orow, ocol));
+			mvaddcch(orow, ocol, get_dungeon_char(orow, ocol));
 		}
 		if (rogue_can_see(*row, *col)) {
 			if (!(dungeon[*row][*col] & MONSTER)) {
-				mvaddch(*row, *col, ch);
+				mvaddcch(*row, *col, cc);
 			}
 			refresh();
 		}
@@ -205,7 +206,8 @@ short row, col;
 	short i = 0;
 	char msg[80];
 	boolean found = 0;
-	short mch, dch;
+	short mch;
+	color_char dcch;
 	unsigned short mon;
 
 	while ((i < 9) && dungeon[row][col] & ~(FLOOR | TUNNEL | DOOR | MONSTER)) {
@@ -230,17 +232,17 @@ short row, col;
 				((row != rogue.row) || (col != rogue.col))) {
 			mon = dungeon[row][col] & MONSTER;
 			dungeon[row][col] &= (~MONSTER);
-			dch = get_dungeon_char(row, col);
+			dcch.b16 = get_dungeon_char(row, col).b16;
 			if (mon) {
 				mch = mvinch(row, col);
 				if (monster = object_at(&level_monsters, row, col)) {
-					monster->trail_char = dch;
+					monster->trail_char.b16 = dcch.b16;
 				}
 				if ((mch < 'A') || (mch > 'Z')) {
-					mvaddch(row, col, dch);
+					mvaddcch(row, col, dcch);
 				}
 			} else {
-				mvaddch(row, col, dch);
+				mvaddcch(row, col, dcch);
 			}
 			dungeon[row][col] |= mon;
 		}

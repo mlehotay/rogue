@@ -58,6 +58,7 @@ extern long level_points[];
 extern boolean detect_monster, mon_disappeared;
 extern boolean sustain_strength, maintain_armor;
 extern char *you_can_move_again;
+extern boolean enable_hypo;
 
 special_hit(monster)
 object *monster;
@@ -131,7 +132,11 @@ object *monster;
 		for (i = 0; i < n; i++) {
 			mv_mons();
 		}
-		if (rand_percent(freeze_percent)) {
+
+	/* NS -- added at behest of my son John, who hates when his characters
+	 *		 die of hypothermia. :-)
+	 */
+		if (enable_hypo  &&  rand_percent(freeze_percent)) {
 			for (i = 0; i < 50; i++) {
 				mv_mons();
 			}
@@ -226,7 +231,7 @@ object *monster;
 
 	dungeon[row][col] &= ~MONSTER;
 	if (rogue_can_see(row, col)) {
-		mvaddch(row, col, get_dungeon_char(row, col));
+		mvaddcch(row, col, get_dungeon_char(row, col));
 	}
 	take_from_pack(monster, &level_monsters);
 	free_object(monster);
@@ -277,19 +282,31 @@ object *monster;
 	free_object(obj);
 }
 
+
+/* NS: Corrected this (I hope) in the event the object rolls under a monster.
+ */
 try_to_cough(row, col, obj)
 short row, col;
 object *obj;
 {
+	color_char cc;
+	object *monster;
+
 	if ((row < MIN_ROW) || (row > (DROWS-2)) || (col < 0) || (col>(DCOLS-1))) {
 		return(0);
 	}
 	if ((!(dungeon[row][col] & (OBJECT | STAIRS | TRAP))) &&
-		(dungeon[row][col] & (TUNNEL | FLOOR | DOOR))) {
+				(dungeon[row][col] & (TUNNEL | FLOOR | DOOR))) {
 		place_at(obj, row, col);
-		if (((row != rogue.row) || (col != rogue.col)) &&
-			(!(dungeon[row][col] & MONSTER))) {
-			mvaddch(row, col, get_dungeon_char(row, col));
+		cc = get_dungeon_char(row,col);
+		if ((row != rogue.row) || (col != rogue.col)) {
+			if (!(dungeon[row][col] & MONSTER)) {
+				mvaddcch(row, col, cc);
+			} else {
+				monster = object_at(&level_monsters, row, col);
+				if (monster != 0)
+					monster->trail_char.b16 = cc.b16;
+			}
 		}
 		return(1);
 	}
@@ -356,7 +373,7 @@ object *monster;
 	if (monster->m_flags & IMITATES) {
 		wake_up(monster);
 		if (!blind) {
-			mvaddch(monster->row, monster->col,
+			mvaddcch(monster->row, monster->col,
 					get_dungeon_char(monster->row, monster->col));
 			check_message();
 			sprintf(msg, "wait, that's a %s!", mon_name(monster));
@@ -474,27 +491,38 @@ object *monster;
 	return(0);
 }
 
+/* NS 14 June 2003 -- fixed a bug here that usually caused the monster
+ *   to shoot into the upper-right corner of a room.  Now it shoots
+ *   at the rogue 60% of the time, and randomly the other 40%.
+ */
+#define ABS(x)		(((x) < 0) ? -(x) : (x))
+
 flame_broil(monster)
 object *monster;
 {
 	short row, col, dir;
 
+	/*  NS: the monster won't flame if he doesn't see us, we're not in his
+	 *  line, we're out of range, we're too close, or we're just plain lucky.
+	 */
 	if ((!mon_sees(monster, rogue.row, rogue.col)) || coin_toss()) {
 		return(0);
 	}
-	row = rogue.row - monster->row;
-	col = rogue.col - monster->col;
-	if (row < 0) {
-		row = -row;
-	}
-	if (col < 0) {
-		col = -col;
-	}
+	row = ABS(rogue.row - monster->row);
+	col = ABS(rogue.col - monster->col);
 	if (((row != 0) && (col != 0) && (row != col)) ||
-		((row > 7) || (col > 7))) {
+			(row > 7) || (col > 7) ||
+			((row <= 1) && (col <= 1)) ) {
 		return(0);
 	}
-	dir = get_dir(monster->row, monster->col, row, col);
+
+	/*  NS: Alas, he flames.  To give the rogue a fighting chance, we'll
+	 *  say that the monster's aim in a dark dungeon isn't the greatest.
+	 */
+	dir = get_dir(monster->row, monster->col, rogue.row, rogue.col);
+	if (rand_percent(40)) {
+		dir = get_rand(1, DIRS);
+	}
 	bounce(FIRE, dir, monster->row, monster->col, 0);
 
 	return(1);

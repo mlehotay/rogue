@@ -112,7 +112,7 @@ short row, col;
 		bear_trap = get_rand(4, 7);
 		break;
 	case TELE_TRAP:
-		mvaddch(rogue.row, rogue.col, '^');
+		mvaddcch(rogue.row, rogue.col, get_terrain_char(TRAP));
 		tele();
 		break;
 	case DART_TRAP:
@@ -219,7 +219,7 @@ show_traps()
 	for (i = 0; i < DROWS; i++) {
 		for (j = 0; j < DCOLS; j++) {
 			if (dungeon[i][j] & TRAP) {
-				mvaddch(i, j, '^');
+				mvaddcch(i, j, get_terrain_char(TRAP));
 			}
 		}
 	}
@@ -260,7 +260,7 @@ boolean is_auto;
 						dungeon[row][col] &= (~HIDDEN);
 						if ((!blind) && ((row != rogue.row) ||
 								(col != rogue.col))) {
-							mvaddch(row, col, get_dungeon_char(row, col));
+							mvaddcch(row, col, get_dungeon_char(row, col));
 						}
 						shown++;
 						if (dungeon[row][col] & TRAP) {

@@ -119,7 +119,7 @@ object mon_tab[MONSTERS] = {
 extern short cur_level;
 extern short cur_room, party_room;
 extern short blind, halluc, haste_self;
-extern boolean detect_monster, see_invisible, r_see_invisible;
+extern boolean detect_monster, see_invisible, r_see_invisible, use_color;
 extern short stealthy;
 
 put_mons()
@@ -159,7 +159,7 @@ register mn;
 	}
 	*monster = mon_tab[mn];
 	if (monster->m_flags & IMITATES) {
-		monster->disguise = gr_obj_char();
+		monster->disguise = gr_obj_index();
 	}
 	if (cur_level > (AMULET_LEVEL + 2)) {
 		monster->m_flags |= HASTED;
@@ -210,7 +210,7 @@ mv_mons()
 			mv_1_monster(monster, rogue.row, rogue.col);
 		}
 
-NM:		/* 
+NM:		/*
 		 * As per NetBSD PR bin/5806
 		 * Fix lossage with fire-spitting, monster-killing dragons
 		 *
@@ -270,38 +270,48 @@ int rn, n;
 	}
 }
 
-gmc_row_col(row, col)
-register row, col;
+
+/* Returns the monster's character.  Monsters are always white-on-black
+ * except for imitators.
+ */
+color_char gmc_row_col(register row, register col)
 {
 	register object *monster;
+	color_char cc;
 
 	if (monster = object_at(&level_monsters, row, col)) {
-		if ((!(detect_monster || see_invisible || r_see_invisible) &&
-			(monster->m_flags & INVISIBLE)) || blind) {
-			return(monster->trail_char);
-		}
-		if (monster->m_flags & IMITATES) {
-			return(monster->disguise);
-		}
-		return(monster->m_char);
-	} else {
-		return('&');	/* BUG if this ever happens */
+		return (gmc(monster));
+
+	} else {	/* BUG if this ever happens */
+		cc.b8.color = MAKE_COLOR(WHITE,BLACK);
+		cc.b8.ch = '&';
+		return (cc);
 	}
 }
 
-gmc(monster)
-object *monster;
+
+color_char gmc(object *monster)
 {
+	color_char cc;
+
+	/* invisible/blinded */
 	if ((!(detect_monster || see_invisible || r_see_invisible) &&
-		(monster->m_flags & INVISIBLE))
-		|| blind) {
+		(monster->m_flags & INVISIBLE)) || blind) {
 		return(monster->trail_char);
 	}
+
+	/* imitator */
 	if (monster->m_flags & IMITATES) {
-		return(monster->disguise);
+		cc.b16 = gr_obj_char(monster->disguise).b16;
+		return(cc);
 	}
-	return(monster->m_char);
+
+	/* your garden variety monster */
+	cc.b8.color = MAKE_COLOR(WHITE,BLACK);
+	cc.b8.ch = monster->m_char;
+	return(cc);
 }
+
 
 mv_1_monster(monster, row, col)
 register object *monster;
@@ -470,23 +480,23 @@ register short row, col;
 
 	if ((c >= 'A') && (c <= 'Z')) {
 		if (!detect_monster) {
-			mvaddch(mrow, mcol, monster->trail_char);
+			mvaddcch(mrow, mcol, monster->trail_char);
 		} else {
 			if (rogue_can_see(mrow, mcol)) {
-				mvaddch(mrow, mcol, monster->trail_char);
+				mvaddcch(mrow, mcol, monster->trail_char);
 			} else {
-				if (monster->trail_char == '.') {
-					monster->trail_char = ' ';
+				if (monster->trail_char.b16 == get_terrain_char(FLOOR).b16) {
+					monster->trail_char = get_terrain_char(NOTHING);
 				}
-				mvaddch(mrow, mcol, monster->trail_char);
+				mvaddcch(mrow, mcol, monster->trail_char);
 			}
 		}
 	}
-	monster->trail_char = mvinch(row, col);
+	monster->trail_char.b16 = mvincch(row, col).b16;
 	if (!blind && (detect_monster || rogue_can_see(row, col))) {
 		if ((!(monster->m_flags & INVISIBLE) ||
 			(detect_monster || see_invisible || r_see_invisible))) {
-			mvaddch(row, col, gmc(monster));
+			mvaddcch(row, col, gmc(monster));
 		}
 	}
 	if ((dungeon[row][col] & DOOR) &&
@@ -660,7 +670,7 @@ show_monsters()
 	monster = level_monsters.next_monster;
 
 	while (monster) {
-		mvaddch(monster->row, monster->col, monster->m_char);
+		mvaddcch(monster->row, monster->col, gmc(monster));
 		if (monster->m_flags & IMITATES) {
 			monster->m_flags &= (~IMITATES);
 			monster->m_flags |= WAKENS;
@@ -695,7 +705,7 @@ create_monster()
 	if (found) {
 		monster = gr_monster((object *) 0, 0);
 		put_m_at(row, col, monster);
-		mvaddch(row, col, gmc(monster));
+		mvaddcch(row, col, gmc(monster));
 		if (monster->m_flags & (WANDERS | WAKENS)) {
 			wake_up(monster);
 		}
@@ -711,7 +721,7 @@ object *monster;
 	monster->row = row;
 	monster->col = col;
 	dungeon[row][col] |= MONSTER;
-	monster->trail_char = mvinch(row, col);
+	monster->trail_char.b16 = mvincch(row, col).b16;
 	(void) add_to_pack(monster, &level_monsters, 0);
 	aim_monster(monster);
 }
@@ -803,16 +813,6 @@ object *monster;
 	return(1);
 }
 
-gr_obj_char()
-{
-	short r;
-	char *rs = "%!?]=/):*";
-
-	r = get_rand(0, 8);
-
-	return(rs[r]);
-}
-
 no_room_for_monster(rn)
 int rn;
 {
@@ -840,7 +840,7 @@ aggravate()
 		wake_up(monster);
 		monster->m_flags &= (~IMITATES);
 		if (rogue_can_see(monster->row, monster->col)) {
-			mvaddch(monster->row, monster->col, monster->m_char);
+			mvaddcch(monster->row, monster->col, gmc(monster));
 		}
 		monster = monster->next_monster;
 	}

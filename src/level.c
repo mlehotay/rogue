@@ -135,10 +135,11 @@ make_level()
 		must_3 = 8;
 		break;
 	}
-	if (rand_percent(8)) {
+
+	if (rand_percent(PARTY_PCT)) {
 		party_room = 0;
 	}
-	big_room = ((party_room != NO_ROOM) && rand_percent(1));
+	big_room = ((party_room != NO_ROOM) && rand_percent(BIG_PARTY_PCT));
 	if (big_room) {
 		make_room(BIG_ROOM, 0, 0, 0);
 	} else {
@@ -279,8 +280,7 @@ B:
 		for (j = left_col; j <= right_col; j++) {
 			if ((i == top_row) || (i == bottom_row)) {
 				ch = HORWALL;
-			} else if (	((i != top_row) && (i != bottom_row)) &&
-						((j == left_col) || (j == right_col))) {
+			} else if ((j == left_col) || (j == right_col)) {
 				ch = VERTWALL;
 			} else {
 				ch = FLOOR;
@@ -288,6 +288,13 @@ B:
 			dungeon[i][j] = ch;
 		}
 	}
+
+	/* NS : Convert the corners to corner characters */
+	dungeon[top_row][left_col] = ULCORNER;
+	dungeon[top_row][right_col] = URCORNER;
+	dungeon[bottom_row][left_col] = LLCORNER;
+	dungeon[bottom_row][right_col] = LRCORNER;
+
 END:
 	rooms[rn].top_row = top_row;
 	rooms[rn].bottom_row = bottom_row;
@@ -752,7 +759,7 @@ short nr;		/* try not to put in this room */
 		message(new_level_message, 0);
 		new_level_message = 0;
 	}
-	mvaddch(rogue.row, rogue.col, rogue.fchar);
+	mvaddcch(rogue.row, rogue.col, get_rogue_char());
 }
 
 drop_check()

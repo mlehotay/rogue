@@ -120,8 +120,8 @@ short dirch, pickup;
 	} else if (dungeon[row][col] & TUNNEL) {
 			light_passage(row, col);
 	}
-	mvaddch(rogue.row, rogue.col, get_dungeon_char(rogue.row, rogue.col));
-	mvaddch(row, col, rogue.fchar);
+	mvaddcch(rogue.row, rogue.col, get_dungeon_char(rogue.row, rogue.col));
+	mvaddcch(row, col, get_rogue_char());
 
 	if (!jump) {
 		refresh();
@@ -295,7 +295,7 @@ register drow, dcol;
 	return(0);
 }
 
-can_move(row1, col1, row2, col2) 
+can_move(row1, col1, row2, col2)
 {
 	if (!is_passable(row2, col2)) {
 		return(0);
@@ -412,12 +412,29 @@ boolean msg_only;
 		killed_by((object *) 0, STARVATION);
 	}
 
+	/* NS - Fixed a bug whereby one ring of slow digestion (RoSD) eliminated
+	 *		the need to eat.  In PC-Rogue, it takes two rings, and even that's
+	 *		somewhat bogus because two RoSD's, one scare monster scroll,
+	 *		and a boatload of patience allows you to build a supercharacter
+	 *		and win the game.  For PC-Rogue, this glitch is almost a godsend,
+	 *		because there's practically no other way to get the @#$%^ amulet.
+	 *		For the more civilized Rogue Clone, which actually gives you a
+	 *		fighting chance to beat it, the two-ring cheat is IMO
+	 *		unacceptable, and the one-ring cheat is lunacy.  So, now, even
+	 *		two RoSD's aren't enough to keep you from needing food once
+	 *		in a while.
+	 */
 	switch(e_rings) {
 	/*case -2:
 		Subtract 0, i.e. do nothing.
 		break;*/
+	case -2:
+		rogue.moves_left -= (get_rand(1,4) == 1);
+		break;
 	case -1:
-		rogue.moves_left -= (rogue.moves_left % 2);
+//		NS: The original bug is funny enough to leave here for posterity. :-)
+//		rogue.moves_left -= (rogue.moves_left % 2);
+		rogue.moves_left -= get_rand(0,1);
 		break;
 	case 0:
 		rogue.moves_left--;
@@ -425,7 +442,8 @@ boolean msg_only;
 	case 1:
 		rogue.moves_left--;
 		(void) check_hunger(1);
-		rogue.moves_left -= (rogue.moves_left % 2);
+//		rogue.moves_left -= (rogue.moves_left % 2);
+		rogue.moves_left -= get_rand(0,1);
 		break;
 	case 2:
 		rogue.moves_left--;

@@ -1,0 +1,93 @@
+# RogueClone makefile for GNU Make
+
+OBJ = o
+EXE = exe
+SRC = .
+
+OBJECTS = $(OBJ)/curses.o $(OBJ)/hit.o $(OBJ)/init.o $(OBJ)/invent.o \
+          $(OBJ)/level.o $(OBJ)/machdep.o $(OBJ)/main.o $(OBJ)/message.o \
+          $(OBJ)/monster.o $(OBJ)/move.o $(OBJ)/object.o $(OBJ)/pack.o \
+          $(OBJ)/play.o $(OBJ)/random.o $(OBJ)/ring.o $(OBJ)/room.o \
+          $(OBJ)/save.o $(OBJ)/score.o $(OBJ)/spec_hit.o $(OBJ)/throw.o \
+          $(OBJ)/trap.o $(OBJ)/use.o $(OBJ)/zap.o
+          
+GAME = $(EXE)/rogue.exe
+
+######################
+
+
+$(GAME) : $(OBJECTS)
+	gcc $(OBJECTS) -o $(GAME)
+
+$(OBJ)/curses.o : $(SRC)/curses.c $(SRC)/rogue.h
+	gcc -c $< -o $@
+
+$(OBJ)/hit.o : $(SRC)/hit.c $(SRC)/rogue.h
+	gcc -c $< -o $@
+
+$(OBJ)/init.o : $(SRC)/init.c $(SRC)/rogue.h $(SRC)/paths.h
+	gcc -c $< -o $@
+
+$(OBJ)/invent.o : $(SRC)/invent.c $(SRC)/rogue.h
+	gcc -c $< -o $@
+
+$(OBJ)/level.o : $(SRC)/level.c $(SRC)/rogue.h
+	gcc -c $< -o $@
+
+$(OBJ)/machdep.o : $(SRC)/machdep.c $(SRC)/rogue.h $(SRC)/paths.h $(SRC)/version.h
+	gcc -c $< -o $@
+
+$(OBJ)/main.o : $(SRC)/main.c $(SRC)/rogue.h
+	gcc -c $< -o $@
+
+$(OBJ)/message.o : $(SRC)/message.c $(SRC)/rogue.h $(SRC)/paths.h
+	gcc -c $< -o $@
+
+$(OBJ)/monster.o : $(SRC)/monster.c $(SRC)/rogue.h
+	gcc -c $< -o $@
+
+$(OBJ)/move.o : $(SRC)/move.c $(SRC)/rogue.h
+	gcc -c $< -o $@
+
+$(OBJ)/object.o : $(SRC)/object.c $(SRC)/rogue.h $(SRC)/paths.h
+	gcc -c $< -o $@
+
+$(OBJ)/pack.o : $(SRC)/pack.c $(SRC)/rogue.h
+	gcc -c $< -o $@
+
+$(OBJ)/play.o : $(SRC)/play.c $(SRC)/rogue.h $(SRC)/version.h
+	gcc -c $< -o $@
+
+$(OBJ)/random.o : $(SRC)/random.c
+	gcc -c $< -o $@
+
+$(OBJ)/ring.o : $(SRC)/ring.c $(SRC)/rogue.h
+	gcc -c $< -o $@
+
+$(OBJ)/room.o : $(SRC)/room.c $(SRC)/rogue.h
+	gcc -c $< -o $@
+
+$(OBJ)/save.o : $(SRC)/save.c $(SRC)/rogue.h
+	gcc -c $< -o $@
+
+$(OBJ)/score.o : $(SRC)/score.c $(SRC)/rogue.h $(SRC)/paths.h
+	gcc -c $< -o $@
+
+$(OBJ)/spec_hit.o : $(SRC)/spec_hit.c $(SRC)/rogue.h
+	gcc -c $< -o $@
+
+$(OBJ)/throw.o : $(SRC)/throw.c $(SRC)/rogue.h
+	gcc -c $< -o $@
+
+$(OBJ)/trap.o : $(SRC)/trap.c $(SRC)/rogue.h
+	gcc -c $< -o $@
+
+$(OBJ)/use.o : $(SRC)/use.c $(SRC)/rogue.h
+	gcc -c $< -o $@
+
+$(OBJ)/zap.o : $(SRC)/zap.c $(SRC)/rogue.h
+	gcc -c $< -o $@
+
+
+#$(OBJ)/%.o : $(SRC)/%.c
+#	gcc -c $< -o $@

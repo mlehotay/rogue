@@ -52,8 +52,11 @@
 
 boolean wizard = 0;
 
-extern boolean being_held, score_only, detect_monster;
+extern boolean being_held, score_only, detect_monster, use_color;
 extern short cur_room;
+
+void bounce(short ball, short dir, short row, short col, short r);
+
 
 zapp()
 {
@@ -120,7 +123,7 @@ short *row, *col;
 		orow = *row; ocol = *col;
 		get_dir_rc(dir, row, col, 0);
 		if (((*row == orow) && (*col == ocol)) ||
-		   (dungeon[*row][*col] & (HORWALL | VERTWALL)) ||
+		   (dungeon[*row][*col] & ANYROOMSIDE) ||
 		   (dungeon[*row][*col] == NOTHING)) {
 			return(0);
 		}
@@ -138,7 +141,7 @@ unsigned short kind;
 {
 	short row, col;
 	object *nm;
-	short tc;
+	color_char tc;
 
 	row = monster->row;
 	col = monster->col;
@@ -170,12 +173,12 @@ unsigned short kind;
 			being_held = 0;
 		}
 		nm = monster->next_monster;
-		tc = monster->trail_char;
+		tc.b16 = monster->trail_char.b16;
 		(void) gr_monster(monster, get_rand(0, MONSTERS-1));
 		monster->row = row;
 		monster->col = col;
 		monster->next_monster = nm;
-		monster->trail_char = tc;
+		monster->trail_char.b16 = tc.b16;
 		if (!(monster->m_flags & IMITATES)) {
 			wake_up(monster);
 		}
@@ -208,13 +211,13 @@ object *monster;
 		being_held = 0;
 	}
 	gr_row_col(&row, &col, (FLOOR | TUNNEL | STAIRS | OBJECT));
-	mvaddch(monster->row, monster->col, monster->trail_char);
+	mvaddcch(monster->row, monster->col, monster->trail_char);
 	dungeon[monster->row][monster->col] &= ~MONSTER;
 	monster->row = row; monster->col = col;
 	dungeon[row][col] |= MONSTER;
-	monster->trail_char = mvinch(row, col);
+	monster->trail_char.b16 = mvincch(row, col).b16;
 	if (detect_monster || rogue_can_see(row, col)) {
-		mvaddch(row, col, gmc(monster));
+		mvaddcch(row, col, gmc(monster));
 	}
 }
 
@@ -269,6 +272,10 @@ object *monster;
 	relight();
 }
 
+
+/* NS: Now restores original colors of the objects/terrain the bolt
+ *	   hit along its path.
+ */
 static void clear_wand_effect(short orow, short ocol, short row, short col, short dir) {
 	short ch;
 
@@ -277,9 +284,11 @@ static void clear_wand_effect(short orow, short ocol, short row, short col, shor
 
 	while (orow!=row || ocol!=col) {
 		get_dir_rc(dir, &orow, &ocol, 1);
-		ch = mvinch(orow, ocol);
-		mvaddch(orow, ocol, ch);
-	} 
+		mvaddcch(orow, ocol, get_dungeon_char(orow, ocol));
+//		ch = mvinch(orow, ocol);
+//		mvaddch(orow, ocol, ch);
+	}
+	mvaddcch(rogue.row, rogue.col, get_rogue_char());
 	refresh();
 }
 
@@ -288,13 +297,13 @@ static void clear_wand_effect(short orow, short ocol, short row, short col, shor
  * This is a diagram I made to help myself figure out what is going on here,
  * specifically, when messages are printed and when the wand effect is erased.
  * It looks like the wand effect is always erased, which is good. -ML 12/19/02
- * 
+ *
  * Legend: [ ] prints message,
  *          +  clears wand effect
  *         [+] does both
  *
  * -----------------------------------------
- * 
+ *
  * if target is monster
  *    if 33% chance
  *       [] wand misses, go to ND
@@ -319,12 +328,19 @@ static void clear_wand_effect(short orow, short ocol, short row, short col, shor
  *    if can bounce
  *       [] bounce
  *    +
+ *
+ * --------
+ * NS 14 June 2003: The wand effect now bounces in color - red for
+ *		fire, ice blue for cold, yellow for everything else.  The
+ *		function is no less hideous, though. :-)
  */
 void bounce(short ball, short dir, short row, short col, short r) {
 	short orow, ocol, new_dir = -1;
 	char buf[DCOLS];
 	const char *s;
 	short ch, damage;
+	color_char cch;
+	byte bolt_color;
 	static short btime;
 
 	if (++r == 1) {
@@ -335,24 +351,34 @@ void bounce(short ball, short dir, short row, short col, short r) {
 
 	if (ball == FIRE) {
 		s = "fire";
-	} else {
+		bolt_color = MAKE_COLOR(BRIGHT_RED, BLACK);
+	} else if (ball == COLD) {
 		s = "ice";
+		bolt_color = MAKE_COLOR(BRIGHT_CYAN, BLACK);
+	} else {		/* for future wants of lightning, etc. */
+		s = "bolt";
+		bolt_color = MAKE_COLOR(BRIGHT_YELLOW, BLACK);
+	}
+	if (!use_color) {
+		bolt_color = MAKE_COLOR(BRIGHT_WHITE, BLACK);
 	}
 
 	orow = row;
 	ocol = col;
-	standout();
+//	standout();
 	do {
 		get_dir_rc(dir, &row, &col, 1);
-		ch = mvinch(row, col);
-		mvaddch(row, col, ch);
+		cch = mvincch(row, col);
+		cch.b8.color = bolt_color;
+		mvaddcch(row, col, cch);
 	} while (!(	(col <= 0) ||
 				(col >= DCOLS-1) ||
 				(dungeon[row][col] == NOTHING) ||
 				(dungeon[row][col] & MONSTER) ||
-				(dungeon[row][col] & (HORWALL | VERTWALL)) ||
+				(dungeon[row][col] & DOOR) ||
+				(dungeon[row][col] & ANYROOMSIDE) ||
 				((row == rogue.row) && (col == rogue.col))));
-	standend();
+//	standend();
 	refresh();
 
 	if (dungeon[row][col] & MONSTER) {
@@ -430,7 +456,8 @@ ND:		for (i = 0; i < 10; i++) {
 			get_dir_rc(ndir, &nrow, &ncol, 1);
 			if (((ncol >= 0) && (ncol <= DCOLS-1)) &&
 				(dungeon[nrow][ncol] != NOTHING) &&
-				(!(dungeon[nrow][ncol] & (VERTWALL | HORWALL)))) {
+				(!(dungeon[nrow][ncol] & DOOR)) &&
+				(!(dungeon[nrow][ncol] & (ANYROOMSIDE)))) {
 				new_dir = ndir;
 				sprintf(buf, "the %s bounces", s);
 				message(buf, 0);

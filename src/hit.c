@@ -110,6 +110,11 @@ register object *monster;
 	if (wizard) {
 		damage /= 3;
 	}
+	/* NS: Stealing this excellent idea from PC-Rogue */
+	if (cur_level == 1) {
+		damage /= 2;
+	}
+
 	if (damage > 0) {
 		rogue_damage(damage, monster, 0);
 	}
@@ -296,7 +301,7 @@ short damage;
 		row = monster->row;
 		col = monster->col;
 		dungeon[row][col] &= ~MONSTER;
-		mvaddch(row, col, (int) get_dungeon_char(row, col));
+		mvaddcch(row, col, get_dungeon_char(row, col));
 
 		fight_monster = 0;
 		cough_up(monster);

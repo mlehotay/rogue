@@ -149,7 +149,7 @@ char *syllables[MAXSYLLABLES] = {
 	"poxi "
 };
 
-#define COMS 49
+#define COMS 50
 
 struct id_com_s {
 	short com_char;
@@ -157,59 +157,71 @@ struct id_com_s {
 };
 
 struct id_com_s com_id_tab[COMS] = {
-	'?',	"?       prints help",
-	'r',	"r       read scroll",
-	'/',	"/       identify object",
-	'e',	"e       eat food",
-	'h',	"h \033     left",
-	'w',	"w       wield a weapon",
-	'j',	"j \031     down",
-	'W',	"W       wear armor",
-	'k',	"k \030     up",
-	'T',	"T       take armor off",
-	'l',	"l \032     right",
-	'P',	"P       put on ring",
-	'y',	"y Home  up & left",
-	'R',	"R       remove ring",
-	'u',	"u PgUp  up & right",
-	'd',	"d       drop object",
-	'b',	"b End   down & left",
-	'c',	"c       call object",
-	'n',	"n PgDn  down & right",
-	NULL,	"<SHIFT><dir>: run that way",
-	')',	")       print current weapon",
-	NULL,	"<CTRL><dir>: run till adjacent",
-	']',	"]       print current armor",
-	NULL,	"<SCROLL LOCK>: Fast Play mode",
-	'=',	"=       print current rings",
-	't',	"t<dir>  throw something",
-	'\001',	"^A      print Hp-raise average",
-	'm',	"m<dir>  move onto without picking up",
-	'z',	"z<dir>  zap a wand in a direction",
-	'o',	"o       examine/set options",
-	'^',	"^<dir>  identify trap type",
-	'\022',	"^R      redraw screen",
-	'\020',	"^P      repeat last message",
-	's',	"s       search for trap/secret door",
-	'\033',	"ESC     cancel command",
-	'>',	">       go down a staircase",
-	'S',	"S       save game",
-	'<',	"<       go up a staircase",
-	'Q',	"Q       quit",
-	'.',	".       rest for a turn",
-	'!',	"!       shell escape",
-	',',	",       pick something up",
-    'f',	"f<dir>  fight till death or near death",
-	'i',	"i       inventory",
-	'F',	"F<dir>  fight till either of you dies",
-	'I',	"I       inventory single item",
-	'v',	"v       print version number",
-	'q',	"q       quaff potion",
-	'&',	"&       save screen into '" _PATH_SCREENFILE "'"
+	'?',		"?       prints help",
+	'r',		"r       read scroll",
+	'/',		"/       identify object",
+	'e',		"e       eat food",
+	'h',		"h \033     left",
+	'w',		"w       wield a weapon",
+	'j',		"j \031     down",
+	'W',		"W       wear armor",
+	'k',		"k \030     up",
+	'T',		"T       take armor off",
+	'l',		"l \032     right",
+	'P',		"P       put on ring",
+	'y',		"y Home  up & left",
+	'R',		"R       remove ring",
+	'u',		"u PgUp  up & right",
+	'd',		"d       drop object",
+	'b',		"b End   down & left",
+	'c',		"c       call object",
+	'n',		"n PgDn  down & right",
+	(char)NULL,	"<SHIFT><dir>: run that way",
+	')',		")       print current weapon",
+	(char)NULL,	"<CTRL><dir>: run till adjacent",
+	']',		"]       print current armor",
+	(char)NULL,	"<SCROLL LOCK>: Fast Play mode",
+	'=',		"=       print current rings",
+	't',		"t<dir>  throw something",
+	'\001',		"^A      print Hp-raise average",
+	'm',		"m<dir>  move onto without picking up",
+	'z',		"z<dir>  zap a wand in a direction",
+	'o',		"o       examine/set options",
+	'^',		"^<dir>  identify trap type",
+	'\022',		"^R      redraw screen",
+	'\020',		"^P      repeat last message",
+	's',		"s       search for trap/secret door",
+	'\033',		"ESC     cancel command",
+	'>',		">       go down a staircase",
+	'S',		"S       save game",
+	'<',		"<       go up a staircase",
+	'Q',		"Q       quit",
+	'.',		".       rest for a turn",
+	'!',		"!       shell escape",
+	',',		",       pick something up",
+    'f',		"f<dir>  fight till death or near death",
+	'i',		"i       inventory",
+	'F',		"F<dir>  fight till either of you dies",
+	'I',		"I       inventory single item",
+	'D',		"D		 list what you've discovered",
+	'v',		"v       print version number",
+	'q',		"q       quaff potion",
+	'&',		"&       save screen into '" _PATH_SCREENFILE "'"
 };
 
-extern boolean wizard;
+extern boolean wizard, use_color;
 extern char *m_names[], *more;
+
+
+#define INV_LETTER_COLOR		BRIGHT_MAGENTA
+#define INV_PROTECT_COLOR		BRIGHT_YELLOW
+#define INV_ITEM_COLOR			WHITE
+
+
+extern struct id id_scrolls[];
+
+
+/* =================== FUNCTIONS ================= */
 
 inventory(pack, mask)
 object *pack;
@@ -217,8 +229,10 @@ unsigned short mask;
 {
 	object *obj;
 	short i = 0, j, maxlen = 0, n;
-	char descs[MAX_PACK_COUNT+1][DCOLS];
+	char bwdesc[DCOLS];
+	color_char descs[MAX_PACK_COUNT+1][DCOLS];
 	short row, col;
+	byte letter_color, protect_color, item_color;
 
 	obj = pack->next_object;
 
@@ -226,33 +240,55 @@ unsigned short mask;
 		message("your pack is empty", 0);
 		return;
 	}
+
+	if (use_color) {
+		letter_color = MAKE_COLOR(INV_LETTER_COLOR, BLACK);
+		protect_color = MAKE_COLOR(INV_PROTECT_COLOR, BLACK);
+		item_color = MAKE_COLOR(INV_ITEM_COLOR, BLACK);
+	} else {
+		letter_color = MAKE_COLOR(WHITE,BLACK);
+		protect_color = MAKE_COLOR(WHITE,BLACK);
+		item_color = MAKE_COLOR(WHITE,BLACK);
+	}
+
 	while (obj) {
 		if (obj->what_is & mask) {
-			descs[i][0] = ' ';
-			descs[i][1] = obj->ichar;
-			descs[i][2] = ((obj->what_is & ARMOR) && obj->is_protected)
-				? '}' : ')';
-			descs[i][3] = ' ';
-			get_desc(obj, descs[i]+4);
-			if ((n = strlen(descs[i])) > maxlen) {
+			descs[i][0].b8.color = MAKE_COLOR(WHITE, BLACK);
+			descs[i][0].b8.ch = ' ';
+			descs[i][1].b8.color = letter_color;
+			descs[i][1].b8.ch = obj->ichar;
+			if ((obj->what_is & ARMOR) && obj->is_protected) {
+				descs[i][2].b8.color = protect_color;
+				descs[i][2].b8.ch = '}';
+			} else {
+				descs[i][2].b8.color = letter_color;
+				descs[i][2].b8.ch = ')';
+			}
+			descs[i][3].b8.color = MAKE_COLOR(WHITE, BLACK);
+			descs[i][3].b8.ch = ' ';
+
+			get_desc(obj, bwdesc);
+			(void) colorize(bwdesc, item_color, descs[i]+4);
+			if ((n = strlen(bwdesc)+4) > maxlen) {
 				maxlen = n;
 			}
 		i++;
 		}
 		obj = obj->next_object;
 	}
-	(void) strcpy(descs[i++], press_space);
+	(void) colorize(press_space, MAKE_COLOR(WHITE, BLACK), descs[i++]);
+//	(void) strcpy(descs[i++], press_space);
 	if (maxlen < 27) maxlen = 27;
 	col = DCOLS - (maxlen + 2);
 
 	for (row = 0; ((row < i) && (row < DROWS)); row++) {
 		if (row > 0) {
 			for (j = col; j < DCOLS; j++) {
-				descs[row-1][j-col] = mvinch(row, j);
+				descs[row-1][j-col].b16 = mvincch(row, j).b16;
 			}
-			descs[row-1][j-col] = 0;
+			descs[row-1][j-col].b16 = 0;
 		}
-		mvaddstr(row, col, descs[row]);
+		mvaddcstr(row, col, descs[row]);
 		clrtoeol();
 	}
 	refresh();
@@ -262,7 +298,7 @@ unsigned short mask;
 	clrtoeol();
 
 	for (j = 1; ((j < i) && (j < DROWS)); j++) {
-		mvaddstr(j, col, descs[j-1]);
+		mvaddcstr(j, col, descs[j-1]);
 	}
 }
 
@@ -394,7 +430,8 @@ int ch;
 
 		if (ch <= '\031') {
 			ch += 96;
-			(void) strcpy(until, "until adjascent");
+//			(void) strcpy(until, "until adjascent");
+			(void) strcpy(until, "until adjacent");		/* NS - :-) */
 		} else {
 			ch += 32;
 			until[0] = '\0';

@@ -1,32 +1,69 @@
-#define VERSION_MAJOR 2
-#define VERSION_MINOR 0
-#define VERSION_PATCH 1
-#define EXPERIMENTAL  0
+/*
+	#define VERSION_MAJOR 2
+	#define VERSION_MINOR 1
+	#define VERSION_PATCH 0
+	#define EXPERIMENTAL  0
 
-#define STRINGIZE(x) #x
+	#define STRINGIZE(x) #x
 
-#if VERSION_PATCH == 0
-  #define PATCH_STRING
-#else
-  #define PATCH_STRING "." STRINGIZE(VERSION_PATCH)
-#endif
+	#if VERSION_PATCH == 0
+	  #define PATCH_STRING
+	#else
+	  #define PATCH_STRING "." STRINGIZE(VERSION_PATCH)
+	#endif
 
-#if EXPERIMENTAL == 0
-  #define DEV_STRING
-#else
-  #define DEV_STRING " (in development)"
-#endif
+	#if EXPERIMENTAL == 0
+	  #define DEV_STRING
+	#else
+	  #define DEV_STRING " (in development)"
+	#endif
 
-#define VERSION_STRING "DOS Rogue Clone version " STRINGIZE(VERSION_MAJOR) \
-                       "." STRINGIZE(VERSION_MINOR) PATCH_STRING DEV_STRING
 
-#define LONG_VERSION_STRING VERSION_STRING " built " __DATE__ " " __TIME__
+	#define VERSION_STRING "DOS Rogue Clone version " STRINGIZE(VERSION_MAJOR) \
+						   "." STRINGIZE(VERSION_MINOR) PATCH_STRING DEV_STRING
+	#define LONG_VERSION_STRING VERSION_STRING " built " __DATE__ " " __TIME__
+*/
+
+/* This eliminates all preprocessor headaches, especially as gcc seems
+ * not to expand macro paramters before applying the stringizing (#)
+ * operator.
+ */
+
+#define VERSION "2.1.0a"
+
+#define VERSION_STRING 			"DOS Rogue Clone version " VERSION
+#define LONG_VERSION_STRING 	VERSION_STRING " built " __DATE__ " " __TIME__
+
+
 
 #define COPYRIGHT_LINE1 \
 "Based on Timothy C. Stoehr's Rogue 5.3 Clone Version III"
 
 #define COPYRIGHT_LINE2 \
 "Copyright (c) 1988, 1993 The Regents of the University of California"
+
+
+/*****************************************************************************/
+/* Version 2.1.0  NS */
+
+/*
+ *  DOS Rogue Clone 2.1.0, June 14 2003
+ *  now supports color graphics throughout.
+ *  uses PC-Rogue DOS characters and tombstone.
+ *  adapted to compile under gcc (and hopefully still under Watcom).
+ *  more sophisticated command line/environment options
+ *  fixed bug in dragon's fire-breathing aim.
+ *	fixed several bugs pertaining to object naming under gcc.
+ */
+
+/*
+ *  DOS Rogue Clone 2.1.0a, June 16 2003
+ *	less garish floor color when using traditional ASCII characters
+ *  added option for hypothermia (my son hates it :-))
+ *  Now supports -? and -?? switches
+ *	Save Screen always saves in ASCII characters.
+ *  Objects appear on gray background in tunnels.
+ */
 
 
 /*****************************************************************************/
@@ -56,7 +93,7 @@
  *  wands of fire, cold, and drain life added
  *  scroll of confuse monster added
  */
- 
+
 /*****************************************************************************/
 /* Version 1.0.1 */
 

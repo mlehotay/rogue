@@ -54,10 +54,12 @@ room rooms[MAXROOMS];
 boolean rooms_visited[MAXROOMS];
 
 extern short blind;
-extern boolean detect_monster, jump, passgo, no_skull;
+extern short halluc;
+extern boolean detect_monster, jump, passgo, display_skull;
+extern boolean enable_hypo, use_doschars, use_color;
 extern char *login_name, *fruit, *press_space;
 
-#define NOPTS 5
+#define NOPTS 8
 
 struct option {
 	char *prompt;
@@ -65,28 +67,93 @@ struct option {
 	char **strval;
 	boolean *bval;
 	boolean add_blank;
+	boolean redraw_necc;
 } options[NOPTS] = {
 	{
 		"Show position only at end of run (\"jump\"): ",
-		1, (char **) 0, &jump
+		1, (char **) 0, &jump, 0, 0
 	},
 	{
 		"Follow turnings in passageways (\"passgo\"): ",
-		1, (char **) 0, &passgo
+		1, (char **) 0, &passgo, 0, 0
 	},
 	{
-		"Don't print skull when killed (\"noskull\" or \"notomb\"): ",
-		1, (char **) 0, &no_skull
+		"Print skull when killed (\"skull\" or \"tomb\"): ",
+		1, (char **) 0, &display_skull, 0, 0
+	},
+	{
+		"Allow death by hypothermia (\"hypo\"): ",
+		1, (char **) 0, &enable_hypo, 0, 0
+	},
+	{
+		"Play in color (\"color\"): ",
+		1, (char **) 0, &use_color, 0, 1
+	},
+	{
+		"Use DOS character set (\"doschars\"): ",
+		1, (char **) 0, &use_doschars, 0, 1
 	},
 	{
 		"Name (\"name\"): ",
-		0, &login_name, (boolean *) 0, 0
+		0, &login_name, (boolean *) 0, 0, 0
 	},
 	{
 		"Fruit (\"fruit\"): ",
-		0, &fruit, (boolean *) 0, 1
+		0, &fruit, (boolean *) 0, 1, 0
 	}
 };
+
+
+/*   NS, 8 June 2003: All drawing properties are in this table.  Also, now
+ *   uses the PC-Rogue characters for objects and dungeon terrain.
+ */
+struct _screenchars {
+	unsigned short mask;		/* as defined in rogue.h */
+	char ch;					/* classic screen character */
+	char dosch;					/* DOS screen character */
+	unsigned char fgcolor;		/* foreground color */
+	unsigned char bgcolor;		/* background color */
+	boolean canBeMimicked;		/* Xeroc disguise or hallucination char? */
+};
+
+struct _screenchars scrObjects[OBJECTTYPES] = {
+	{ ARMOR,   ']', '\x08',	BRIGHT_BLUE,   BLACK, 1 },
+	{ WEAPON,  ')', '\x18', BRIGHT_BLUE,   BLACK, 1 },
+	{ SCROL,   '?', '\x0D',	BRIGHT_BLUE,   BLACK, 1 },
+	{ POTION,  '!', '\xAD', BRIGHT_BLUE,   BLACK, 1 },
+	{ GOLD,    '*', '\x0F', BRIGHT_YELLOW, BLACK, 1 },
+	{ FOOD,    ':', '\x05', RED,           BLACK, 1 },
+	{ WAND,    '/', '\xE7', BRIGHT_BLUE,   BLACK, 1 },
+	{ RING,    '=', '\x09', BRIGHT_BLUE,   BLACK, 1 },
+	{ AMULET,  ',', '\x0C', BRIGHT_BLUE,   BLACK, 0 }
+};
+
+struct _screenchars scrTerrain[TERRAINTYPES] = {
+	{ NOTHING, ' ', ' ', 	WHITE,  		BLACK,        0 },
+	{ OBJECT,  '~', '~', 	WHITE,   		BLACK,        0 },	/* error */
+	{ MONSTER, 'm', 'm',	WHITE,   		BLACK,        0 },	/* error */
+	{ STAIRS,  '%', '\xF0', BLACK,  		BRIGHT_GREEN, 1 },
+	{ HORWALL, '-', '\xCD', YELLOW, 		BLACK,        0 },
+	{ VERTWALL,'|', '\xBA', YELLOW, 		BLACK,        0 },
+	{ ULCORNER,'-', '\xC9', YELLOW, 		BLACK,        0 },
+	{ URCORNER,'-', '\xBB', YELLOW, 		BLACK,        0 },
+	{ LLCORNER,'-', '\xC8', YELLOW, 		BLACK,        0 },
+	{ LRCORNER,'-', '\xBC', YELLOW, 		BLACK,        0 },
+	{ DOOR,    '+', '\xCE', YELLOW,  		BLACK,        0 },
+	{ FLOOR,   '.', '\xFA',	BRIGHT_GREEN,   BLACK,        0 },
+	{ TUNNEL,  '#', '\xB1', WHITE,    		BLACK,        0 },
+	{ TRAP,    '^', '\x04', MAGENTA, 		BLACK,        0 }
+};
+
+
+static struct _screenchars *disguise_chars[OBJECTTYPES + TERRAINTYPES];
+static short dc_len = -1;
+
+static init_groc_array();
+
+
+
+/* ======================= FUNCTIONS ===================== */
 
 light_up_room(rn)
 int rn;
@@ -108,12 +175,20 @@ int rn;
 						dungeon[monster->row][monster->col] |= MONSTER;
 					}
 				}
-				mvaddch(i, j, get_dungeon_char(i, j));
+				mvaddcch(i, j, get_dungeon_char(i, j));
 			}
 		}
-		mvaddch(rogue.row, rogue.col, rogue.fchar);
+		mvaddcch(rogue.row, rogue.col, get_rogue_char());
+
+		/* NS - added this so that hallucinating characters don't see the
+		 * actual room contents when they cross the threshold.
+		 */
+		if (halluc) {
+			hallucinate();
+		}
 	}
 }
+
 
 light_passage(row, col)
 {
@@ -128,7 +203,7 @@ light_passage(row, col)
 	for (i = ((row > MIN_ROW) ? -1 : 0); i <= i_end; i++) {
 		for (j = ((col > 0) ? -1 : 0); j <= j_end; j++) {
 			if (can_move(row, col, row+i, col+j)) {
-				mvaddch(row+i, col+j, get_dungeon_char(row+i, col+j));
+				mvaddcch(row+i, col+j, get_dungeon_char(row+i, col+j));
 			}
 		}
 	}
@@ -150,7 +225,7 @@ short rn;
 						mvaddch(i, j, ' ');
 					}
 					if ((dungeon[i][j] & TRAP) && (!(dungeon[i][j] & HIDDEN))) {
-						mvaddch(i, j, '^');
+						mvaddcch(i, j, get_terrain_char(TRAP));
 					}
 				}
 			}
@@ -158,80 +233,186 @@ short rn;
 	}
 }
 
-get_dungeon_char(row, col)
-register row, col;
+
+
+color_char get_terrain_char(mask)
+{
+	color_char cc;
+	int i;
+
+	/* NS: this ought to be a hashtable lookup, but for now... */
+	for (i=0; i<TERRAINTYPES; i++) {
+		if (scrTerrain[i].mask == mask) {
+			cc.b8.color = use_color ?
+				MAKE_COLOR(scrTerrain[i].fgcolor, scrTerrain[i].bgcolor) :
+				MAKE_COLOR(WHITE, BLACK);
+			cc.b8.ch = use_doschars ? scrTerrain[i].dosch : scrTerrain[i].ch;
+
+			/* NS: Mild hack needed to prevent an aesthetic disaster :-) */
+			if (mask == FLOOR  &&  !use_doschars)
+				cc.b8.color = MAKE_COLOR(GREEN,BLACK);
+
+			return cc;
+		}
+	}
+
+	/* error! */
+	cc.b8.color = MAKE_COLOR(BRIGHT_WHITE, BLACK);
+	cc.b8.ch = '~';
+	return cc;
+}
+
+
+
+color_char get_dungeon_char(register row, register col)
 {
 	register unsigned short mask = dungeon[row][col];
+	color_char cc;
 
+	/* monsters are at the top layer and overlay all else */
 	if (mask & MONSTER) {
 		return(gmc_row_col(row, col));
 	}
+
+	/* objects are the second layer */
 	if (mask & OBJECT) {
 		object *obj;
 
 		obj = object_at(&level_objects, row, col);
-		return(get_mask_char(obj->what_is));
+		cc.b16 = get_mask_char(obj->what_is).b16;
+		if (mask & TUNNEL)
+			cc.b8.color = MAKE_COLOR(FGCOLOR_OF(cc.b8.color),GRAY);
+		return cc;
 	}
-	if (mask & (TUNNEL | STAIRS | HORWALL | VERTWALL | FLOOR | DOOR)) {
-		if ((mask & (TUNNEL| STAIRS)) && (!(mask & HIDDEN))) {
-			return(((mask & STAIRS) ? '%' : '#'));
+
+	/* terrain is third.  This too needs to become a hashtable. */
+	if (mask & (TUNNEL | STAIRS | ANYROOMSIDE | FLOOR | DOOR)) {
+		if ((mask & STAIRS) && !(mask & HIDDEN)) {
+			return (get_terrain_char(STAIRS));
+		}
+		if ((mask & TUNNEL) && !(mask & HIDDEN)) {
+			return (get_terrain_char(TUNNEL));
 		}
 		if (mask & HORWALL) {
-			return('-');
+			return(get_terrain_char(HORWALL));
 		}
 		if (mask & VERTWALL) {
-			return('|');
+			return(get_terrain_char(VERTWALL));
+		}
+		/* NS: Corner support added. */
+		if (mask & LLCORNER) {
+			return(get_terrain_char(LLCORNER));
+		}
+		if (mask & LRCORNER) {
+			return(get_terrain_char(LRCORNER));
+		}
+		if (mask & ULCORNER) {
+			return(get_terrain_char(ULCORNER));
+		}
+		if (mask & URCORNER) {
+			return(get_terrain_char(URCORNER));
 		}
 		if (mask & FLOOR) {
 			if (mask & TRAP) {
-				if (!(dungeon[row][col] & HIDDEN)) {
-					return('^');
+				if (!(mask & HIDDEN)) {
+					return(get_terrain_char(TRAP));
 				}
 			}
-			return('.');
+			return(get_terrain_char(FLOOR));
 		}
 		if (mask & DOOR) {
 			if (mask & HIDDEN) {
-				if (((col > 0) && (dungeon[row][col-1] & HORWALL)) ||
-					((col < (DCOLS-1)) && (dungeon[row][col+1] & HORWALL))) {
-					return('-');
+				if (((col > 0)
+						&& (dungeon[row][col-1] & (HORWALL | ANYCORNER))) ||
+					((col < (DCOLS-1))
+						&& (dungeon[row][col+1] & (HORWALL | ANYCORNER)))) {
+					return(get_terrain_char(HORWALL));
 				} else {
-					return('|');
+					return(get_terrain_char(VERTWALL));
 				}
 			} else {
-				return('+');
+				return(get_terrain_char(DOOR));
 			}
 		}
 	}
-	return(' ');
+
+	return(get_terrain_char(NOTHING));
 }
 
-get_mask_char(mask)
-register unsigned short mask;
+
+
+/* Returns the screen character of the specified item.
+ * NS: This now returns a 16-bit color_char.
+ */
+color_char get_mask_char(register unsigned short mask)
 {
-		switch(mask) {
-		case SCROL:
-			return('?');
-		case POTION:
-			return('!');
-		case GOLD:
-			return('*');
-		case FOOD:
-			return(':');
-		case WAND:
-			return('/');
-		case ARMOR:
-			return(']');
-		case WEAPON:
-			return(')');
-		case RING:
-			return('=');
-		case AMULET:
-			return(',');
-		default:
-			return('~');	/* unknown, something is wrong */
+	color_char cc;
+	int i;
+
+	/* this ought to be a hashtable lookup, but for now... */
+	for (i=0; i<OBJECTTYPES; i++) {
+		if (scrObjects[i].mask == mask) {
+			cc.b8.color = use_color ?
+				MAKE_COLOR(scrObjects[i].fgcolor, scrObjects[i].bgcolor) :
+				MAKE_COLOR(WHITE, BLACK);
+			cc.b8.ch = use_doschars ? scrObjects[i].dosch : scrObjects[i].ch;
+			return cc;
 		}
+	}
+
+	/* error! */
+	cc.b8.color = MAKE_COLOR(BRIGHT_WHITE, BLACK);
+	cc.b8.ch = '~';
+	return cc;
 }
+
+
+/* Returns the rogue's character based on the current options settings.
+ */
+color_char get_rogue_char()
+{
+	color_char cc;
+
+	cc.b8.color = (use_color) ? rogue.color : MAKE_COLOR(WHITE,BLACK);
+	cc.b8.ch = (use_doschars) ? rogue.dosfchar : rogue.fchar;
+	return cc;
+}
+
+
+/*  Clears and redraws the screen buffer.  Only nonblank characters are
+ *	redrawn, otherwise this function would be a magic map / detect
+ *  monsters / detect things combination platter.
+ */
+regenerate_screen()
+{
+	int i, j;
+	register unsigned short mask;
+	object *monster;
+
+	for (i=0; i<DROWS; i++) {
+		for (j=0; j<DCOLS; j++) {
+			if (mvinch(i,j) != ' ') {
+				mask = dungeon[i][j];
+
+				/* set a monster's trail character and the Xeroc's disguise */
+				if (mask & MONSTER) {
+					monster = object_at(&level_monsters, i, j);
+					if (monster) {
+						dungeon[i][j] &= ~MONSTER;
+						monster->trail_char = get_dungeon_char(i,j);
+						dungeon[i][j] |= MONSTER;
+					}
+				}
+
+				/* draw the character */
+				addcch(get_dungeon_char(i, j));
+			}
+		}
+	}
+	mvaddcch(rogue.row, rogue.col, get_rogue_char());
+	print_stats(STAT_ALL);
+}
+
 
 gr_row_col(row, col, mask)
 short *row, *col;
@@ -348,10 +529,14 @@ int rn;
 	}
 }
 
+/* NS: Fixed a bug here; if the rogue read a magic mapping scroll while
+ *		standing on a trap, he disappears from the screen.
+ */
 draw_magic_map()
 {
-	short i, j, ch, och;
-	unsigned short mask = (HORWALL | VERTWALL | DOOR | TUNNEL | TRAP | STAIRS |
+	short i, j, ch;
+	color_char cch, occh;
+	unsigned short mask = (ANYROOMSIDE | DOOR | TUNNEL | TRAP | STAIRS |
 			MONSTER);
 	unsigned short s;
 
@@ -359,39 +544,51 @@ draw_magic_map()
 		for (j = 0; j < DCOLS; j++) {
 			s = dungeon[i][j];
 			if (s & mask) {
-				if (((ch = mvinch(i, j)) == ' ') ||
-					((ch >= 'A') && (ch <= 'Z')) || (s & (TRAP | HIDDEN))) {
-					och = ch;
+				ch = mvinch(i,j);
+				cch.b16 = mvincch(i,j).b16;
+				if ((ch == ' ')
+					|| ((ch >= 'A') && (ch <= 'Z'))
+					|| (s & (TRAP | HIDDEN))) {
+					occh.b16 = cch.b16;
 					dungeon[i][j] &= (~HIDDEN);
 					if (s & HORWALL) {
-						ch = '-';
+						cch = get_terrain_char(HORWALL);
 					} else if (s & VERTWALL) {
-						ch = '|';
+						cch = get_terrain_char(VERTWALL);
+					} else if (s & ULCORNER) {
+						cch = get_terrain_char(ULCORNER);
+					} else if (s & URCORNER) {
+						cch = get_terrain_char(URCORNER);
+					} else if (s & LLCORNER) {
+						cch = get_terrain_char(LLCORNER);
+					} else if (s & LRCORNER) {
+						cch = get_terrain_char(LRCORNER);
 					} else if (s & DOOR) {
-						ch = '+';
+						cch = get_terrain_char(DOOR);
 					} else if (s & TRAP) {
-						ch = '^';
+						cch = get_terrain_char(TRAP);
 					} else if (s & STAIRS) {
-						ch = '%';
+						cch = get_terrain_char(STAIRS);
 					} else if (s & TUNNEL) {
-						ch = '#';
+						cch = get_terrain_char(TUNNEL);
 					} else {
 						continue;
 					}
-					if ((!(s & MONSTER)) || (och == ' ')) {
-						addch(ch);
+					if ((!(s & MONSTER)) || (ch == ' ')) {
+						addcch(cch);
 					}
 					if (s & MONSTER) {
 						object *monster;
 
 						if (monster = object_at(&level_monsters, i, j)) {
-							monster->trail_char = ch;
+							monster->trail_char.b16 = cch.b16;
 						}
 					}
 				}
 			}
 		}
 	}
+	mvaddcch(rogue.row, rogue.col, get_rogue_char());
 }
 
 dr_course(monster, entering, row, col)
@@ -490,20 +687,30 @@ short rn, *row, *col;
 	return(0);
 }
 
+
+/* NS: Now supports a redraw option when the screen color or
+ *		character set changes.  At the moment, the 'regen_necc'
+ *		feature in the options array only works for boolean
+ *		options, but that's all we need at the moment.
+ */
 edit_opts()
 {
-	char save[NOPTS+1][DCOLS];
+	color_char save[NOPTS+1][DCOLS];
 	short i, j;
 	short ch;
-	boolean done = 0;
+	boolean oldval[NOPTS];
+	boolean done = 0, need_regen = 0;
 	char buf[MAX_OPT_LEN + 2];
 
 	for (i = 0; i < NOPTS+1; i++) {
 		for (j = 0; j < DCOLS; j++) {
-			save[i][j] = mvinch(i, j);
+			save[i][j] = mvincch(i, j);
 		}
 		if (i < NOPTS) {
 			opt_show(i);
+			if (options[i].is_bool) {
+				oldval[i] = *(options[i].bval);
+			}
 		}
 	}
 	opt_go(0);
@@ -584,8 +791,16 @@ CH:
 	for (i = 0; i < NOPTS+1; i++) {
 		move(i, 0);
 		for (j = 0; j < DCOLS; j++) {
-			addch(save[i][j]);
+			addcch(save[i][j]);
 		}
+		if (options[i].is_bool && options[i].redraw_necc
+				&& (*(options[i].bval) != oldval[i])) {
+			need_regen = 1;
+		}
+	}
+
+	if (need_regen) {
+		regenerate_screen();
 	}
 }
 
@@ -610,7 +825,9 @@ int i;
 {
 	struct option *opt = &options[i];
 
-	mvaddstr(i, 0, opt->prompt);
+	mvaddstr_in_color(i, 0, opt->prompt,
+					  use_color ? MAKE_COLOR(CYAN, BLACK) :
+					  			  MAKE_COLOR(WHITE,BLACK));
 	clrtoeol();
 }
 
@@ -636,4 +853,86 @@ do_shell()
 	start_window();
 	redraw();
 	md_heed_signals();
+}
+
+
+/* Gets a random object character for Xeroc disguises and hallucinations.
+ * NS: moved this here from monster.c.  This returns a random color
+ * character if the argument is <0, or the specific character index
+ * if >=0.  In both cases, the current color & character set values
+ * are honored.  All this work is to keep Xerocs hidden when the user
+ * switches display options; there is surely an easier way to do it...
+ */
+color_char gr_obj_char(int ix)
+{
+	struct _screenchars *sc;
+	color_char cc;
+
+	/* initialize groc array and check for failing case */
+	if (dc_len < 0) {
+		init_groc_array();
+	}
+	if (dc_len <= 0) { 		/* ugh */
+		cc.b8.color = MAKE_COLOR(WHITE, BLACK);
+		cc.b8.ch = '~';
+		return cc;
+	}
+
+	/* get the character we are to use for the disguise */
+	if ((ix < 0) || (ix >= dc_len)) {
+		sc = disguise_chars[get_rand(0, dc_len-1)];
+	} else {
+		sc = disguise_chars[ix];
+	}
+
+	/* construct the color character */
+	cc.b8.ch = (use_doschars) ? sc->dosch : sc->ch;
+	cc.b8.color = (use_color) ?	MAKE_COLOR(sc->fgcolor, sc->bgcolor) :
+								MAKE_COLOR(WHITE, BLACK);
+	return cc;
+}
+
+
+/* Returns the index of a Xeroc's disguise.  This won't change for
+ * the life of the monster, while the actual character might if the
+ * user switches display options on us.
+ */
+gr_obj_index()
+{
+	struct _screenchars *sc;
+	color_char cc;
+
+	/* initialize groc array and check for failing case */
+	if (dc_len < 0) {
+		init_groc_array();
+	}
+	if (dc_len <= 0) {
+		return -1;
+	} else {
+		return get_rand(0, dc_len-1);
+	}
+}
+
+
+
+/* initializes the disguise/hallucination() array.  Called upon first use of
+ * gr_obj_char() or gr_obj_index()
+ */
+static init_groc_array()
+{
+	int i;
+
+	dc_len = 0;
+	for (i=0; i<OBJECTTYPES; i++) {
+		if (scrObjects[i].canBeMimicked) {
+			disguise_chars[dc_len] = &scrObjects[i];
+			dc_len++;
+		}
+	}
+	for (i=0; i<TERRAINTYPES; i++) {
+		if (scrTerrain[i].canBeMimicked) {
+			disguise_chars[dc_len] = &scrTerrain[i];
+			dc_len++;
+		}
+	}
 }
