@@ -416,20 +416,20 @@ of each command.
 
  <tr valign=top>
  <td><kbd>W</kbd>
- <td>Wear armor. You can only wear one suit of armor at a time. This takes
- extra time.
+ <td>Wear armor. You can only wear one suit of armor at a time. <!-- This takes
+ extra time. -->
 
  <tr valign=top>
  <td><kbd>T</kbd>
- <td>Take armor off. You can't remove armor that is cursed. This takes extra
- time.
+ <td>Take armor off. You can't remove armor that is cursed. <!-- This takes
+ extra time. -->
 
  <tr valign=top>
  <td><kbd>P</kbd>
  <td>Put on a ring. You can wear only two rings at a time (one on each hand).
  If you aren't wearing any rings, this command will ask you which hand you want
- to wear it on, otherwise, it will place it on the unused hand. The program
- assumes that you wield your sword in your right hand.
+ to wear it on, otherwise, it will place it on the unused hand. <!-- The
+ program assumes that you wield your sword in your right hand. -->
 
  <tr valign=top>
  <td><kbd>R</kbd>
@@ -473,7 +473,8 @@ of each command.
  <tr valign=top>
  <td><kbd>^P</kbd>
  <td>Print last message. Useful when a message disappears before you can read
- it. Consecutive repetitions of this command will reveal the last five messages.
+ it. Consecutive repetitions of this command will reveal the last five
+ messages.
 
  <tr valign=top>
  <td><kbd>&lt;ESC&gt;&nbsp;</kbd>
@@ -489,15 +490,16 @@ of each command.
 
  <tr valign=top>
  <td><kbd>S</kbd>
- <td>Save the current game in a file. It will ask you whether you wish to use
- the default save file. <i>Caveat</i>: Rogue won't let you start up a copy of a
- saved game, and it removes the save file as soon as you start up a restored
- game. This is to prevent people from saving a game just before a dangerous
- position and then restarting it if they die. To restore a saved game, give the
- file name as an argument to rogue. As in
+ <td>Save the current game in a file. <!-- It will ask you whether you wish to
+ use the default save file. --> <i>Caveat</i>: Rogue <!-- won't let you start
+ up a copy of a saved game, and it --> removes the save file as soon as you
+ start up a restored game. This is to prevent people from saving a game just
+ before a dangerous position and then restarting it if they die. To restore a
+ saved game, supply the same player name when asked "Who are you?" or give the
+ file name as an argument to rogue, as in
 
  <blockquote>
-  <samp>%</samp> <kbd>rogue <i>save_file</i></kbd>
+  <samp>C:\&gt;</samp><kbd>rogue <i>save_file</i></kbd>
  </blockquote>
 
  <!-- <p>To restart from the default save file (see below), run % rogue -r -->
@@ -605,7 +607,7 @@ the various armor types and their normal armor protection:
   <td>Leather armor
   <td align=center>2
  <tr>
-  <td>Studded leather / Ring mail
+  <td><!-- Studded leather / --> Ring mail
   <td align=center>3
  <tr>
   <td>Scale mail
@@ -627,8 +629,8 @@ normal. If a suit of armor is cursed, its armor protection will be lower, and
 you will not be able to remove it. However, not all armor with a protection
 that is lower than normal is cursed.
 
-<p>The commands to use weapons are '<kbd>W</kbd>' (wear) and '<kbd>T</kbd>'
-(take off).
+<p>The commands to use armor are '<kbd>W</kbd>' (wear) and '<kbd>T</kbd>' (take
+off).
 
 
 <h3>7.3 Scrolls</h3>
@@ -713,8 +715,8 @@ to set up an environment variable so that <i>jump</i> is on, <i>passgo</i>
 command
 
 <blockquote>
- <samp>%</samp> <kbd>setenv ROGUEOPTS "jump,nopassgo,name=Blue
- Meanie"</kbd><a href="#endnote6"><sup><small>6</small></sup></a>
+ <samp>C:\&gt;</samp><kbd>set ROGUEOPTS=jump,nopassgo,name:Blue
+ Meanie</kbd><a href="#endnote6"><sup><small>6</small></sup></a>
  <!-- % setenv ROGUEOPTS "jump,noterse,name=Blue Meanie" -->
 </blockquote>
 
@@ -736,8 +738,8 @@ options, input over forty characters will be ignored.
  <tr valign=top>
  <td><i>jump</i><td>[ <i>nojump</i> ]<br>
  If this option is set, running moves will not be displayed until you reach the
- end of the move. This saves considerable cpu and display time. This option
- defaults to <i>jump</i> if you are using a slow terminal.
+ end of the move. This saves considerable cpu and display time. <!-- This
+ option defaults to <i>jump</i> if you are using a slow terminal. -->
 
  <!-- <i>flush</i> [ <i>noflush</i> ]
  All typeahead is thrown away after each round of battle. This is useful for
@@ -777,7 +779,7 @@ options, input over forty characters will be ignored.
  the default for terminals without clear-to-end-of-line capabilities. -->
 
  <tr valign=top>
- <td><i>name</i><td>[ account name ]<br>
+ <td><i>name</i><td>[ Rodney ]<br>
  This is the name of your character. It is used if you get on the top ten
  scorer's list.
 
@@ -786,12 +788,11 @@ options, input over forty characters will be ignored.
  This should hold the name of a fruit that you enjoy eating. It is basically a
  whimsey that rogue uses in a couple of places.
 
- <tr valign=top>
- <td><i>file</i><td>[~/rogue.save ]<br>
+ <!-- <i>file</i><td>[~/rogue.save ]
  The default file name for saving the game. If your phone is hung up by
  accident, rogue will automatically save the game in this file. The file name
  may start with the special character '~' which expands to be your home
- directory.
+ directory. -->
 
 </table>
 
@@ -823,7 +824,7 @@ your gold, but if you swing and live, you might find more.
 type
 
 <blockquote>
- <samp>%</samp> <kbd>rogue -s</kbd>
+ <samp>C:\&gt;</samp><kbd>rogue -s</kbd>
 </blockquote>
 
 
