@@ -319,19 +319,19 @@ id_com()
 		switch(ch) {
 		case LIST:
 			{
-				char save[(((COMS / 2) + (COMS % 2)) + 1)][DCOLS];
+				color_char save[(((COMS / 2) + (COMS % 2)) + 1)][DCOLS];
 				short rows = (((COMS / 2) + (COMS % 2)) + 1);
 				boolean need_two_screens;
 
-				if (rows > LINES) {
+				if (rows > DROWS) {
 					need_two_screens = 1;
-					rows = LINES;
+					rows = DROWS;
 				}
 				k = 0;
 
 				for (i = 0; i < rows; i++) {
 					for (j = 0; j < DCOLS; j++) {
-						save[i][j] = mvinch(i, j);
+						save[i][j] = mvincch(i, j);
 					}
 				}
 MORE:
@@ -340,7 +340,7 @@ MORE:
 					clrtoeol();
 				}
 				for (i = 0; i < (rows-1); i++) {
-					if (i < (LINES-1)) {
+					if (i < (DROWS-1)) {
 						if (((i + i) < COMS) && ((i+i+k) < COMS)) {
 							mvaddstr(i, 0, com_id_tab[i+i+k].com_desc);
 						}
@@ -362,7 +362,7 @@ MORE:
 				for (i = 0; i < rows; i++) {
 					move(i, 0);
 					for (j = 0; j < DCOLS; j++) {
-						addch(save[i][j]);
+						addcch(save[i][j]);
 					}
 				}
 			}

@@ -223,6 +223,8 @@ char *fname;
 		clean_up("extra characters in file");
 	}
 
+	fclose(fp);
+
 	md_gfmt(fname, &mod_time);	/* get file modification time */
 
 	if (has_been_touched(&saved_time, &mod_time)) {
@@ -233,7 +235,6 @@ char *fname;
 		clean_up("cannot delete file");
 	}
 	ring_stats(0);
-	fclose(fp);
 }
 
 write_pack(pack, fp)
