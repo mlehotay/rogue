@@ -272,8 +272,9 @@ color_char get_dungeon_char(register row, register col)
 
 		obj = object_at(&level_objects, row, col);
 		cc.b16 = get_mask_char(obj->what_is).b16;
-		if (mask & TUNNEL)
-			cc.b8.color = MAKE_COLOR(FGCOLOR_OF(cc.b8.color),GRAY);
+		if ((mask & TUNNEL) && use_doschars)
+		    cc.b8.color = MAKE_COLOR(FGCOLOR_OF(cc.b8.color),
+					    use_color ? WHITE : GRAY);
 		return cc;
 	}
 
