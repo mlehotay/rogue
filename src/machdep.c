@@ -47,18 +47,12 @@
 /* Included in this file are all system dependent routines.  Extensive use
  * of #ifdef's will be used to compile the appropriate code on each system:
  *
- *    MSDOS        all MSDOS systems
  *    __WATCOMC__  Open Watcom
- *    __BORLANDC__ Borland C
  *    _MSC_VER     Microsoft C
  *    __DJGPP__    djgpp version 2 and above
- *    __SC__       Symantec C
  *
- * All DOS code should be included between the single "#ifdef MSDOS" at the
- * top of this file, and the "#endif" at the bottom.
- * 
- * To change a routine to include a new DOS system, simply #ifdef the
- * existing routine, as in the following example:
+ * To change a routine to include a new system, simply #ifdef the existing
+ * routine, as in the following example:
  *
  *   To make a routine compatible with Turbo C, change the first function
  *  to the second:
@@ -85,8 +79,6 @@
  *
  */
 
-#ifdef MSDOS
-
 #include <stdio.h>
 #include <conio.h>
 #include <time.h>
@@ -97,6 +89,11 @@
 #include "rogue.h"
 #include "paths.h"
 #include "version.h"
+
+#ifdef _MSC_VER
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
+#endif
 
 /* md_slurp:
  *
@@ -112,8 +109,12 @@
 
 md_slurp()
 {
+#ifdef _MSC_VER
+    FlushConsoleInputBuffer(GetStdHandle(STD_INPUT_HANDLE));
+#else
     while(kbhit())
         rgetchar();
+#endif
 }
 
 /* md_control_keyboard():
@@ -481,5 +482,3 @@ char *shell;
 {
     spawnl(P_WAIT, shell, shell, NULL);
 }
-
-#endif

@@ -44,7 +44,10 @@
  *
  */
 
-/* NS, June 2003: Color Curses
+/*
+ * ML, 31 Jan 2004: added support for win32 console applications
+ *
+ * NS, June 2003: Color Curses
  *
  * This is a modified version of the Rogue curses.c library that supports
  * basic IBM color graphics.  Everything here ought to work on almost all
@@ -68,47 +71,28 @@
 #include <stdio.h>
 #include "rogue.h"
 
-
 /* ============== COMPILER-SPECIFIC CONSTANTS AND TYPEDEFS =============== */
 
-/* --- For compiling under Open Watcom --- */
 #ifdef __WATCOMC__
 
 #include <dos.h>
+typedef union REGPACK regs_t;
+#define	intr_fn(N,R) intr(N,R)
 
-typedef union REGPACK  regs_t;
-#define	R_AX		w.ax
-#define	R_BX		w.bx
-#define	R_CX		w.cx
-#define	R_DX		w.dx
-#define	R_FLAGS		w.flags
+#elif _MSC_VER /* Microsoft C (tested with VC98) */
 
-/* WARNING: for 32-bit code, unused fields of regs_t
-must be zeroed before using this macro */
-#define	intr_fn(N,R)	intr(N,R)
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
 
-
-/* --- For compiling under djgpp --- */
 #elif __DJGPP__
 
 #include <dpmi.h>
-
 typedef __dpmi_regs regs_t;
-#define	R_AX		x.ax
-#define	R_BX		x.bx
-#define	R_CX		x.cx
-#define	R_DX		x.dx
-#define	R_FLAGS		x.flags
+#define	intr_fn(N,R) __dpmi_int(N,R)
 
-#define	intr_fn(N,R)	__dpmi_int(N,R)
-
-
-/* --- Else you're on your own --- */
 #else
-#error Sorry, curses.c compiles under Open Watcom or djgpp
+#error curses.c only compiles with Open Watcom, Microsoft C, or DJGPP
 #endif
-
-
 
 /* ============== CONSTANTS AND TYPEDEFS =============== */
 
@@ -119,15 +103,14 @@ struct _win_st {
 typedef struct _win_st WINDOW;
 
 
-typedef union _colorChar	COLORBUF;
-#define BLANKCH				MAKE_COLOR_CHAR(WHITE,BLACK,' ')
+typedef union _colorChar    COLORBUF;
+#define BLANKCH		    MAKE_COLOR_CHAR(WHITE,BLACK,' ')
 
 
 
 /* ================== GLOBAL VARIABLES ================== */
 
 int LINES=DROWS, COLS=DCOLS;
-
 
 // static char terminal[DROWS][DCOLS];
 // static char buffer[DROWS][DCOLS];
@@ -141,9 +124,12 @@ static boolean buf_stand_out = 0;
 static WINDOW scr_buf;
 static WINDOW *curscr = &scr_buf;
 static short cur_row, cur_col;
+
+#ifdef _MSC_VER
+static HANDLE hStdIn, hStdOut;
+#else
 static unsigned char videomode, videopage;
-
-
+#endif
 
 /* ================= PRIVATE PROTOTYPES ================= */
 
@@ -155,39 +141,88 @@ static put_cursor(register int row, register int col);
 static char translate_keypad(int scancode);
 static wrefresh(WINDOW *scr);
 
-
-
 /* ================== PUBLIC FUNCTIONS ================== */
 
 /*  Returns a keystroke, translated into a Rogue command.
  */
 rgetchar()
 {
-	register ch;
+    register ch;
+#ifdef _MSC_VER
+    INPUT_RECORD ir;
+    DWORD n;
+    
+    put_cursor(curscr->_cury, curscr->_curx);
+#else
     register scancode;
-	regs_t regs;
+    regs_t regs;
+#endif
 
-	for(;;) {
-        regs.h.ah = 0x00; /* get keystroke */
-        intr_fn(0x16, &regs);
-        scancode = regs.h.ah; /* BIOS scancode */
-
-        if(scancode>0x46 && scancode<0x54)
-            ch = translate_keypad(scancode);
-        else
-            ch = regs.h.al; /* ASCII code */
-
-        switch(ch) {
-		case '\022': /* ^R */
-			wrefresh(curscr);
-			break;
-        case '&':
-            save_screen();
-			break;
-		default:
-			return(ch);
-		}
+    for(;;) {
+#ifdef _MSC_VER
+	if(!ReadConsoleInput(hStdIn, &ir, 1, &n) ||
+		ir.EventType != KEY_EVENT || !ir.Event.KeyEvent.bKeyDown)
+	    continue;
+	
+	switch(ir.Event.KeyEvent.wVirtualKeyCode) {
+	case VK_NUMPAD9: case VK_PRIOR:
+	    ir.Event.KeyEvent.uChar.AsciiChar = 'u'; break;
+	case VK_NUMPAD3: case VK_NEXT:
+	    ir.Event.KeyEvent.uChar.AsciiChar = 'n'; break;
+	case VK_NUMPAD1: case VK_END:
+	    ir.Event.KeyEvent.uChar.AsciiChar = 'b'; break;
+	case VK_NUMPAD7: case VK_HOME:
+	    ir.Event.KeyEvent.uChar.AsciiChar = 'y'; break;
+	case VK_NUMPAD4: case VK_LEFT:
+	    ir.Event.KeyEvent.uChar.AsciiChar = 'h'; break;
+	case VK_NUMPAD8: case VK_UP:
+	    ir.Event.KeyEvent.uChar.AsciiChar = 'k'; break;
+	case VK_NUMPAD6: case VK_RIGHT:
+	    ir.Event.KeyEvent.uChar.AsciiChar = 'l'; break;
+	case VK_NUMPAD2: case VK_DOWN:
+	    ir.Event.KeyEvent.uChar.AsciiChar = 'j'; break;
+	case VK_DELETE:
+	    ir.Event.KeyEvent.uChar.AsciiChar = '.'; break;
 	}
+	
+	if((ir.Event.KeyEvent.wVirtualKeyCode>=VK_PRIOR &&
+		ir.Event.KeyEvent.wVirtualKeyCode<=VK_DOWN) || 
+		(ir.Event.KeyEvent.wVirtualKeyCode>=VK_NUMPAD1 &&
+		ir.Event.KeyEvent.wVirtualKeyCode<=VK_NUMPAD9)) {
+	    boolean scrolllock = ir.Event.KeyEvent.dwControlKeyState &
+				SCROLLLOCK_ON;
+	    boolean shift = ir.Event.KeyEvent.dwControlKeyState &
+		(SHIFT_PRESSED | LEFT_CTRL_PRESSED | RIGHT_CTRL_PRESSED);
+	    
+	    if((scrolllock && !shift) || (!scrolllock && shift)) {
+		/* convert to control character */
+		ir.Event.KeyEvent.uChar.AsciiChar -= ('a' - 1);
+	    }
+	}
+
+	if(!(ch = ir.Event.KeyEvent.uChar.AsciiChar))
+	    continue;
+#else
+	regs.h.ah = 0x00; /* get keystroke */
+	intr_fn(0x16, &regs);
+	scancode = regs.h.ah; /* BIOS scancode */
+	
+	if(scancode>0x46 && scancode<0x54)
+	    ch = translate_keypad(scancode);
+	else
+	    ch = regs.h.al; /* ASCII code */
+#endif
+	switch(ch) {
+	case '\022': /* ^R */
+	    wrefresh(curscr);
+	    break;
+	case '&':
+	    save_screen();
+	    break;
+	default:
+	    return(ch);
+	}
+    }
 }
 
 
@@ -195,13 +230,27 @@ rgetchar()
  */
 initscr()
 {
-	regs_t regs;
+#ifdef _MSC_VER
+    CONSOLE_SCREEN_BUFFER_INFO csbi;
+
+    hStdOut = GetStdHandle(STD_OUTPUT_HANDLE);
+    hStdIn = GetStdHandle(STD_INPUT_HANDLE);
+
+    GetConsoleScreenBufferInfo(hStdOut, &csbi);
+    COLS = csbi.dwSize.X;
+    LINES = csbi.dwSize.Y;
+
+    SetConsoleTitle("Rogue Clone IV");
+    SetConsoleMode(hStdIn, 0);
+#else
+    regs_t regs;
 
     regs.h.ah = 0x0F;
     intr_fn(0x10, &regs);
     videomode = regs.h.al;
     videopage = regs.h.bh;
     COLS = regs.h.ah;
+#endif
 }
 
 
@@ -394,7 +443,7 @@ color_char mvincch(short row, short col)
 
 clear()
 {
-    cls();
+	cls();
 	fflush(stdout);
 	cur_row = cur_col = 0;
 	move(0, 0);
@@ -438,11 +487,11 @@ standend()
 void
 draw_box(color_char cset[6], int ulrow, int ulcol, int height, int width)
 {
-	int i;
-	const int toprow = ulrow;
-	const int bottomrow = ulrow + height - 1;
-	const int leftcol = ulcol;
-	const int rightcol = ulcol + width - 1;
+	short i;
+	const short toprow = ulrow;
+	const short bottomrow = ulrow + height - 1;
+	const short leftcol = ulcol;
+	const short rightcol = ulcol + width - 1;
 
 	/* check for nonsense */
 	if (height <= 1 || width <= 1
@@ -541,6 +590,7 @@ overlay(color_char cca[][], int rows, int cols, int ulrow, int ulcol)
 
 /* Translates a numeric keypad press into the equivalent Rogue command.
  */
+#ifndef _MSC_VER
 static char translate_keypad(int scancode) {
     const char keys[] = "yku-h5l+bjn0.";
     const char control[] = "\031\013\025-\0105\014+\002\012\0160.";
@@ -556,7 +606,7 @@ static char translate_keypad(int scancode) {
     else
         return keys[scancode-0x47];
 }
-
+#endif
 
 
 /*   Writes a character to the string in B&W (put_char_at) or in color
@@ -572,20 +622,35 @@ static put_char_at(register int row, register int col, char ch)
 
 static put_color_char_at(register int row, register int col, COLORBUF cb)
 {
-	regs_t regs;
+#ifdef _MSC_VER
+    COORD coord;
+    WORD attrib;
+    DWORD n;
+#else
+    regs_t regs;
+    
+    put_cursor(row, col);
+#endif
+    
+#ifdef _MSC_VER
+    coord.X = col;
+    coord.Y = row;
+    attrib = cb.b8.color;
 
-	put_cursor(row, col);
-
+    WriteConsoleOutputCharacter(hStdOut, &cb.b8.ch, 1, coord, &n);
+    WriteConsoleOutputAttribute(hStdOut, &attrib, 1, coord, &n);
+#else
     regs.h.ah = 0x09;
-//    regs.h.al = (ch & ~ST_MASK);
-	regs.h.al = cb.b8.ch;
+    //    regs.h.al = (ch & ~ST_MASK);
+    regs.h.al = cb.b8.ch;
     regs.h.bh = videopage;
-//    regs.h.bl = (ch & ST_MASK) ? 0x0f : 0x07;
+    //    regs.h.bl = (ch & ST_MASK) ? 0x0f : 0x07;
     regs.h.bl = cb.b8.color;
     regs.x.cx = 1;
     intr_fn(0x10, &regs);
-
-	terminal[row][col].b16 = cb.b16;
+#endif
+    
+    terminal[row][col].b16 = cb.b16;
 }
 
 
@@ -593,13 +658,22 @@ static put_color_char_at(register int row, register int col, COLORBUF cb)
  */
 static put_cursor(register int row, register int col)
 {
-	regs_t regs;
+#ifdef _MSC_VER
+    COORD coord;
+
+    coord.X = col;
+    coord.Y = row;
+
+    SetConsoleCursorPosition(hStdOut, coord);
+#else
+    regs_t regs;
 
     regs.h.ah = 0x02;
     regs.h.dh = row;
     regs.h.dl = col;
     regs.h.bh = videopage;
     intr_fn(0x10, &regs);
+#endif
 }
 
 
@@ -628,11 +702,20 @@ static clear_buffers()
 
 static cls()
 {
-	regs_t regs;
+#ifdef _MSC_VER
+    COORD coord;
+    DWORD n;
+
+    coord.X = coord.Y = 0;
+    FillConsoleOutputCharacter(hStdOut, ' ', LINES*COLS, coord, &n);
+    FillConsoleOutputAttribute(hStdOut, WHITE, LINES*COLS, coord, &n);
+#else
+    regs_t regs;
 
     regs.h.ah = 0x00;
     regs.h.al = videomode;
     intr_fn(0x10, &regs);
+#endif
 }
 
 
@@ -653,9 +736,11 @@ static wrefresh(WINDOW *scr)
 			while ((col < DCOLS) && (buffer[i][col].b16 == BLANKCH)) {
 				col++;
 			}
+#ifndef _MSC_VER
 			if (col < DCOLS) {
 				put_cursor(i, col);
 			}
+#endif
 			while ((col < DCOLS) && (buffer[i][col].b16 != BLANKCH)) {
 				put_color_char_at(i, col, buffer[i][col]);
 				col++;

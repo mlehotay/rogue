@@ -43,6 +43,12 @@
  *         gain or profit.
  */
 
+#ifdef _MSC_VER
+/* supress warnings about parameters and return values,
+ * at least until we write proper prototypes */
+#pragma warning(disable:4033 4716 4113)
+#endif
+
 typedef unsigned char boolean;
 typedef unsigned char byte;
 

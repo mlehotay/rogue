@@ -1,8 +1,7 @@
 @echo off
 
-rem batch file to prepare rogue clone for compilation under DOS
+rem batch file to prepare rogue clone for compilation under DOS or Windows
 rem invoke from sys subdirectory, ex: setup wcc
-rem todo: add support for Borland C, Digital Mars, Pacific C, Microsoft C
 
 if exist setup.bat goto compiler
 echo Error: setup must be run from the sys directory
@@ -11,10 +10,12 @@ goto end
 :compiler
 if "%1"=="wcc" goto WATCOM
 if "%1"=="gcc" goto DJGPP
+if "%1"=="msc" goto MICROSOFT
 echo Usage: setup compiler
 echo  supported compilers:
 echo   wcc - Open Watcom
 echo   gcc - DJGPP
+echo   msc - Microsoft C
 goto end
 
 :WATCOM
@@ -25,6 +26,11 @@ goto common
 :DJGPP
 echo Setting up for DJGPP...
 set makefile=makefile.gcc
+goto common
+
+:MICROSOFT
+echo Setting up for Microsoft C...
+set makefile=makefile.msc
 goto common
 
 :common

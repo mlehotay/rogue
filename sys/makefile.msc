@@ -1,0 +1,78 @@
+# NMAKE Makefile for VC98
+
+CFLAGS = /nologo #want /W4
+LDFLAGS = /nologo /warn:3
+LDLIBS =
+
+src = src
+h = src
+obj = o
+exe = exe
+sys = sys
+
+game = rogue
+
+object_files = $(obj)/curses.obj $(obj)/hit.obj $(obj)/init.obj \
+    $(obj)/invent.obj $(obj)/level.obj $(obj)/machdep.obj $(obj)/main.obj \
+    $(obj)/message.obj $(obj)/monster.obj $(obj)/move.obj $(obj)/object.obj \
+    $(obj)/pack.obj $(obj)/play.obj $(obj)/random.obj $(obj)/ring.obj \
+    $(obj)/room.obj $(obj)/save.obj $(obj)/score.obj $(obj)/spec_hit.obj \
+    $(obj)/throw.obj $(obj)/trap.obj $(obj)/use.obj $(obj)/zap.obj
+
+resources = $(sys)/rogue.ico
+
+###############################################################################
+# rules
+
+$(game) : $(exe)\$(game).exe ;
+
+$(exe)\$(game).exe : $(object_files) $(obj)/rogue.res
+    @link /out:$@ $(LDFLAGS) $** $(LDLIBS)
+
+$(obj)/$(game).res : $(sys)/$(game).rc $(resources)
+    @$(RC) -fo $@ $(sys)/$(game).rc
+
+#implicit rule for the ansi source files
+{$(src)}.c{$(obj)}.obj:
+    @$(CC) /c $(CFLAGS) /Fo$(obj)\ /Za $<
+
+#explicit rule for the non-ansi source files
+$(obj)\curses.obj : $(src)\curses.c $(h)\rogue.h
+    @$(CC) /c $(CFLAGS) /Fo$(obj)\ $(src)\$(@B).c
+$(obj)\machdep.obj : $(src)\machdep.c $(h)\rogue.h $(h)\paths.h $(h)\version.h
+    @$(CC) /c $(CFLAGS) /Fo$(obj)\ $(src)\$(@B).c
+
+###############################################################################
+# housekeeping
+
+spotless : clean
+    @if exist $(exe)\$(game).exe del $(exe)\$(game).exe
+    @if exist $(exe)\rogue.sco del $(exe)\rogue.sco
+    @if exist $(exe)\rogue.sav del $(exe)\rogue.sav
+    @if exist $(exe)\screen.txt del $(exe)\screen.txt
+
+clean :
+    @if exist $(obj)\curses.obj del $(obj)\curses.obj
+    @if exist $(obj)\hit.obj del $(obj)\hit.obj
+    @if exist $(obj)\init.obj del $(obj)\init.obj
+    @if exist $(obj)\invent.obj del $(obj)\invent.obj
+    @if exist $(obj)\level.obj del $(obj)\level.obj
+    @if exist $(obj)\machdep.obj del $(obj)\machdep.obj
+    @if exist $(obj)\main.obj del $(obj)\main.obj
+    @if exist $(obj)\message.obj del $(obj)\message.obj
+    @if exist $(obj)\monster.obj del $(obj)\monster.obj
+    @if exist $(obj)\move.obj del $(obj)\move.obj
+    @if exist $(obj)\object.obj del $(obj)\object.obj
+    @if exist $(obj)\pack.obj del $(obj)\pack.obj
+    @if exist $(obj)\play.obj del $(obj)\play.obj
+    @if exist $(obj)\random.obj del $(obj)\random.obj
+    @if exist $(obj)\ring.obj del $(obj)\ring.obj
+    @if exist $(obj)\rogue.res del $(obj)\rogue.res
+    @if exist $(obj)\room.obj del $(obj)\room.obj
+    @if exist $(obj)\save.obj del $(obj)\save.obj
+    @if exist $(obj)\score.obj del $(obj)\score.obj
+    @if exist $(obj)\spec_hit.obj del $(obj)\spec_hit.obj
+    @if exist $(obj)\throw.obj del $(obj)\throw.obj
+    @if exist $(obj)\trap.obj del $(obj)\trap.obj
+    @if exist $(obj)\use.obj del $(obj)\use.obj
+    @if exist $(obj)\zap.obj del $(obj)\zap.obj
