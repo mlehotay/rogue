@@ -55,6 +55,10 @@ extern boolean detect_monster, jump, passgo, display_skull;
 extern boolean use_doschars, use_color;
 extern char *login_name, *fruit, *press_space;
 
+/* don't modify use_colors until entire screen is redrawn, otherwise
+ * some lines are displayed in color and others in black & white */
+static boolean color_kludge;
+
 #define NOPTS 7
 
 struct option {
@@ -79,7 +83,7 @@ struct option {
 	},
 	{
 		"Play in color (\"color\"): ",
-		1, (char **) 0, &use_color, 0, 1
+		1, (char **) 0, &color_kludge, 0, 1
 	},
 	{
 		"Use extended ASCII graphics (\"PCgraphics\"): ",
@@ -91,7 +95,7 @@ struct option {
 	},
 	{
 		"Fruit (\"fruit\"): ",
-		0, &fruit, (boolean *) 0, 1, 0
+		0, &fruit, (boolean *) 0, 0, 0
 	}
 };
 
@@ -690,6 +694,8 @@ edit_opts()
 	boolean done = 0, need_regen = 0;
 	char buf[MAX_OPT_LEN + 2];
 
+	color_kludge = use_color;
+
 	for (i = 0; i < NOPTS+1; i++) {
 		for (j = 0; j < DCOLS; j++) {
 			save[i][j] = mvincch(i, j);
@@ -786,6 +792,8 @@ CH:
 			need_regen = 1;
 		}
 	}
+	
+	use_color = color_kludge;
 
 	if (need_regen) {
 		regenerate_screen();
