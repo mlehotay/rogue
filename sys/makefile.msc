@@ -1,6 +1,6 @@
 # NMAKE Makefile for VC98
 
-CFLAGS = /nologo #want /W4
+CFLAGS = /nologo /O2 /W2 #want /W4 
 LDFLAGS = /nologo /incremental:no /warn:3
 LDLIBS =
 
