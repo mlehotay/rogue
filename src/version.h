@@ -6,12 +6,11 @@
 /* Version 2.1.x */
 
 /*
- *  Rogue Clone IV 2.1.0, February ??, 2004
- *  Nick Straguzzi wrote most of the new code for this version
+ *  Rogue Clone IV 2.1.0, February 22, 2004
  *  new Windows console application port
  *  DOS port now compiles with Open Watcom and DJGPP (abandoned Watcom 7.0)
- *  now supports color graphics throughout
  *  uses PC-Rogue high ASCII characters
+ *  now supports color graphics throughout
  *  fixed bug in dragon's fire-breathing aim
  *  fixed several bugs pertaining to object naming under gcc
  */
