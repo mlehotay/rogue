@@ -147,7 +147,7 @@ static wrefresh(WINDOW *scr);
  */
 rgetchar()
 {
-    unsigned char ch;
+    char ch;
 #ifdef _MSC_VER
     INPUT_RECORD ir;
     DWORD n;
@@ -186,6 +186,9 @@ rgetchar()
 	    ir.Event.KeyEvent.uChar.AsciiChar = '.'; break;
 	}
 
+	if(!ir.Event.KeyEvent.uChar.AsciiChar)
+	    continue;
+
 	/* apply shift or control to keypad movement keys */	
 	if((ir.Event.KeyEvent.wVirtualKeyCode>=VK_PRIOR &&
 		ir.Event.KeyEvent.wVirtualKeyCode<=VK_DOWN) || 
@@ -210,8 +213,7 @@ rgetchar()
 	    }
 	}
 
-	if(!(ch = ir.Event.KeyEvent.uChar.AsciiChar) || ch > 127)
-	    continue;
+	ch = ir.Event.KeyEvent.uChar.AsciiChar;
 #else
 	regs.h.ah = 0x00; /* get keystroke */
 	intr_fn(0x16, &regs);
