@@ -899,9 +899,6 @@ color_char gr_obj_char(int ix)
  */
 gr_obj_index()
 {
-	struct _screenchars *sc;
-	color_char cc;
-
 	/* initialize groc array and check for failing case */
 	if (dc_len < 0) {
 		init_groc_array();

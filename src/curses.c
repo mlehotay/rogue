@@ -69,16 +69,13 @@
  *     useful windowing effects.
  */
 
-
-#include <dpmi.h>
 #include <stdio.h>
 #include "rogue.h"
 
 
-
 /* ============== COMPILER-SPECIFIC CONSTANTS AND TYPEDEFS =============== */
 
-/* --- For compiling under Watcom C, what the code was written for --- */
+/* --- For compiling under Open Watcom --- */
 #ifdef __WATCOMC__
 
 #include <dos.h>
@@ -112,7 +109,7 @@ typedef __dpmi_regs regs_t;
 
 /* --- Else you're on your own --- */
 #else
-#error Sorry, curses.c compiles under Watcom or djgpp
+#error Sorry, curses.c compiles under Open Watcom or djgpp
 #endif
 
 
@@ -156,7 +153,7 @@ static unsigned char videomode, videopage;
 
 static clear_buffers();
 static cls();
-static put_char_at(register int row, register int col, char ch);
+/* static put_char_at(register int row, register int col, char ch); */
 static put_color_char_at(register int row, register int col, COLORBUF cb);
 static put_cursor(register int row, register int col);
 static char translate_keypad(int scancode);
@@ -442,6 +439,7 @@ standend()
  *  Specify cset in order: horiz, vert, and 4 corners: ul, ur, ll, lr
  */
 
+void
 draw_box(color_char cset[6], int ulrow, int ulcol, int height, int width)
 {
 	int i;
@@ -456,7 +454,7 @@ draw_box(color_char cset[6], int ulrow, int ulcol, int height, int width)
 			|| leftcol < 0 || leftcol >= DCOLS
 			|| bottomrow < 0 || bottomrow >= DROWS
 			|| rightcol < 0 || rightcol >= DCOLS)
-		return 0;
+		return;
 
 	/* draw the walls */
 	for (i = leftcol + 1; i < rightcol; i++) {
@@ -568,10 +566,13 @@ static char translate_keypad(int scancode) {
 /*   Writes a character to the string in B&W (put_char_at) or in color
  *   (put_color_char_at)
  */
+
+#if 0
 static put_char_at(register int row, register int col, char ch)
 {
 	put_color_char_at(row, col, (COLORBUF) MAKE_COLOR_CHAR(WHITE, BLACK, ch));
 }
+#endif
 
 static put_color_char_at(register int row, register int col, COLORBUF cb)
 {

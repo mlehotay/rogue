@@ -52,13 +52,11 @@
  * of #ifdef's will be used to compile the appropriate code on each system:
  *
  *    MSDOS        all MSDOS systems
- *    __WATCOMC__  Watcom C
+ *    __WATCOMC__  Open Watcom
  *    __BORLANDC__ Borland C
  *    _MSC_VER     Microsoft C
  *    __DJGPP__    djgpp version 2 and above
  *    __SC__       Symantec C
- *
- * Note: Watcom C version 7.0 is the only compiler that has been tested.
  *
  * All DOS code should be included between the single "#ifdef MSDOS" at the
  * top of this file, and the "#endif" at the bottom.

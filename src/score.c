@@ -67,7 +67,6 @@ short other;
 	char buf[128];
 	char gold[128];
 	color_char boxchars[6];
-	byte color;
 
 	md_ignore_signals();
 

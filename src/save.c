@@ -51,6 +51,9 @@
 #include <stdio.h>
 #include "rogue.h"
 
+void r_read(FILE *fp, char *buf, int n);
+void r_write(FILE *fp, char *buf, int n);
+
 short write_failed = 0;
 char *save_file = (char *) 0;
 
@@ -362,6 +365,7 @@ boolean rw;
 	}
 }
 
+void
 r_read(fp, buf, n)
 FILE *fp;
 char *buf;
@@ -372,6 +376,7 @@ int n;
 	}
 }
 
+void
 r_write(fp, buf, n)
 FILE *fp;
 char *buf;

@@ -1,106 +1,66 @@
-object_files = curses.obj hit.obj init.obj invent.obj level.obj machdep.obj &
-    main.obj message.obj monster.obj move.obj object.obj pack.obj play.obj &
-    random.obj ring.obj room.obj save.obj score.obj spec_hit.obj throw.obj &
-    trap.obj use.obj zap.obj
+# rogue clone makefile for Open Watcom Make
 
-# eventually want to compile with /oaxt /w3
-wcc_options = /zq /w2
+SRC = src
+H = src
+OBJ = o
+EXE = exe
+
+GAME = rogue
+STACK = 4096
+
+# eventually want to compile with -wx
+wcc_options = -bt=dos -mm -zq -w2 -fr -fo=$(OBJ)\
 wlink_options =
 
-rogue : rogue.exe .SYMBOLIC
+object_files = $(OBJ)\curses.obj $(OBJ)\hit.obj $(OBJ)\init.obj &
+    $(OBJ)\invent.obj $(OBJ)\level.obj $(OBJ)\machdep.obj $(OBJ)\main.obj &
+    $(OBJ)\message.obj $(OBJ)\monster.obj $(OBJ)\move.obj $(OBJ)\object.obj &
+    $(OBJ)\pack.obj $(OBJ)\play.obj $(OBJ)\random.obj $(OBJ)\ring.obj &
+    $(OBJ)\room.obj $(OBJ)\save.obj $(OBJ)\score.obj $(OBJ)\spec_hit.obj &
+    $(OBJ)\throw.obj $(OBJ)\trap.obj $(OBJ)\use.obj $(OBJ)\zap.obj
+
+
+###############################################################################
+# rules
+
+$(GAME) : $(EXE)\$(GAME).exe .SYMBOLIC
     @%null
 
-rogue.exe : $(object_files) rogue.lnk
-    wlink $(wlink_options) @$^*
+$(EXE)\$(GAME).exe : $(object_files) $(GAME).lnk
+    wlink $(wlink_options) @$]*
 
-# explicit rules for non-ansi source files
-.ERASE
-curses.obj : curses.c rogue.h
-    wcc $[*.c $(wcc_options)
+$(GAME).lnk : Makefile
+    @echo creating $^.
+    @%create $^@
+    @%append $^@ name $(EXE)\$^&
+    @%append $^@ system dos
+    @%append $^@ option stack=$(STACK)
+    @for %i in ($(object_files)) do @%append $^@ file %i
+
+# paths to files
+.c : $(SRC)
 
 # implicit rule for ansi source files
 .ERASE
-.c.obj:
-    wcc $[*.c $(wcc_options) /za
+.c.obj: .AUTODEPEND
+    wcc $(SRC)\$^&.c $(wcc_options) /za
 
-hit.obj : hit.c rogue.h
-init.obj : init.c rogue.h paths.h
-invent.obj : invent.c rogue.h
-level.obj : level.c rogue.h
-machdep.obj : machdep.c rogue.h paths.h version.h
-main.obj : main.c rogue.h
-message.obj : message.c rogue.h paths.h
-monster.obj : monster.c rogue.h
-move.obj : move.c rogue.h
-object.obj : object.c rogue.h paths.h
-pack.obj : pack.c rogue.h
-play.obj : play.c rogue.h version.h
-random.obj : random.c
-ring.obj : ring.c rogue.h
-room.obj : room.c rogue.h
-save.obj : save.c rogue.h
-score.obj : score.c rogue.h paths.h
-spec_hit.obj : spec_hit.c rogue.h
-throw.obj : throw.c rogue.h
-trap.obj : trap.c rogue.h
-use.obj : use.c rogue.h
-zap.obj : zap.c rogue.h
+# explicit rule(s) for non-ansi source file(s)
+.ERASE
+$(OBJ)\curses.obj : .AUTODEPEND
+    wcc $(SRC)\$^&.c $(wcc_options)
+
+
+###############################################################################
+# housekeeping
 
 spotless : clean .SYMBOLIC
-    @if exist rogue.exe del rogue.exe
-    @if exist rogue.sco del rogue.sco
-    @if exist rogue.sav del rogue.sav
-    @if exist screen.txt del screen.txt
+    @if exist $(EXE)\$(GAME).exe del $(EXE)\$(GAME).exe
+    @if exist $(EXE)\rogue.sco del $(EXE)\rogue.sco
+    @if exist $(EXE)\rogue.sav del $(EXE)\rogue.sav
+    @if exist $(EXE)\screen.txt del $(EXE)\screen.txt
 
-clean : oclean eclean .SYMBOLIC
-    @if exist rogue.map del rogue.map
-
-oclean : .SYMBOLIC
-    @if exist curses.obj del curses.obj
-    @if exist hit.obj del hit.obj
-    @if exist init.obj del init.obj
-    @if exist invent.obj del invent.obj
-    @if exist level.obj del level.obj
-    @if exist machdep.obj del machdep.obj
-    @if exist main.obj del main.obj
-    @if exist message.obj del message.obj
-    @if exist monster.obj del monster.obj
-    @if exist move.obj del move.obj
-    @if exist object.obj del object.obj
-    @if exist pack.obj del pack.obj
-    @if exist play.obj del play.obj
-    @if exist random.obj del random.obj
-    @if exist ring.obj del ring.obj
-    @if exist room.obj del room.obj
-    @if exist save.obj del save.obj
-    @if exist score.obj del score.obj
-    @if exist spec_hit.obj del spec_hit.obj
-    @if exist throw.obj del throw.obj
-    @if exist trap.obj del trap.obj
-    @if exist use.obj del use.obj
-    @if exist zap.obj del zap.obj
-
-eclean : .SYMBOLIC
-    @if exist curses.err del curses.err
-    @if exist hit.err del hit.err
-    @if exist init.err del init.err
-    @if exist invent.err del invent.err
-    @if exist level.err del level.err
-    @if exist machdep.err del machdep.err
-    @if exist main.err del main.err
-    @if exist message.err del message.err
-    @if exist monster.err del monster.err
-    @if exist move.err del move.err
-    @if exist object.err del object.err
-    @if exist pack.err del pack.err
-    @if exist play.err del play.err
-    @if exist random.err del random.err
-    @if exist ring.err del ring.err
-    @if exist room.err del room.err
-    @if exist save.err del save.err
-    @if exist score.err del score.err
-    @if exist spec_hit.err del spec_hit.err
-    @if exist throw.err del throw.err
-    @if exist trap.err del trap.err
-    @if exist use.err del use.err
-    @if exist zap.err del zap.err
+clean : .SYMBOLIC
+    @for %i in ($(object_files)) do @if exist %i del %i
+    @if exist $(GAME).lnk del $(GAME).lnk
+    @if exist $(GAME).map del $(GAME).map

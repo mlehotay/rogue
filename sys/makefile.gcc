@@ -2,7 +2,7 @@
 
 OBJ = o
 EXE = exe
-SRC = .
+SRC = src
 
 OBJECTS = $(OBJ)/curses.o $(OBJ)/hit.o $(OBJ)/init.o $(OBJ)/invent.o \
           $(OBJ)/level.o $(OBJ)/machdep.o $(OBJ)/main.o $(OBJ)/message.o \
@@ -91,3 +91,10 @@ $(OBJ)/zap.o : $(SRC)/zap.c $(SRC)/rogue.h
 
 #$(OBJ)/%.o : $(SRC)/%.c
 #	gcc -c $< -o $@
+
+######################
+
+.PHONY: clean
+
+clean:
+	@rm -f $(OBJECTS)

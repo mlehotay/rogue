@@ -277,7 +277,7 @@ object *monster;
  *	   hit along its path.
  */
 static void clear_wand_effect(short orow, short ocol, short row, short col, short dir) {
-	short ch;
+//	short ch;
 
 	message("", 0); /* causes a --more-- message */
 	check_message();
@@ -338,7 +338,7 @@ void bounce(short ball, short dir, short row, short col, short r) {
 	short orow, ocol, new_dir = -1;
 	char buf[DCOLS];
 	const char *s;
-	short ch, damage;
+	short damage;
 	color_char cch;
 	byte bolt_color;
 	static short btime;
