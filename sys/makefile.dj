@@ -1,0 +1,96 @@
+# rogue clone IV makefile for DJGPP Make
+
+CFLAGS = -O2 # -Wall
+LDFLAGS = -s
+LDLIBS =
+
+SRC = src
+H = src
+OBJ = o
+EXE = exe
+
+GAME = rogue
+
+OBJECTS = $(OBJ)/curses.o $(OBJ)/hit.o $(OBJ)/init.o $(OBJ)/invent.o \
+          $(OBJ)/level.o $(OBJ)/machdep.o $(OBJ)/main.o $(OBJ)/message.o \
+          $(OBJ)/monster.o $(OBJ)/move.o $(OBJ)/object.o $(OBJ)/pack.o \
+          $(OBJ)/play.o $(OBJ)/random.o $(OBJ)/ring.o $(OBJ)/room.o \
+          $(OBJ)/save.o $(OBJ)/score.o $(OBJ)/spec_hit.o $(OBJ)/throw.o \
+          $(OBJ)/trap.o $(OBJ)/use.o $(OBJ)/zap.o
+
+###############################################################################
+# rules
+
+$(EXE)/$(GAME).exe : $(OBJECTS)
+	$(CC) $(LDFLAGS) $^ $(LDLIBS) -o $@
+
+# implicit rule for the ansi source files
+$(OBJ)/%.o : $(SRC)/%.c
+	$(CC) -c $(CFLAGS) -ansi -pedantic $(SRC)/$(*F).c -o $@
+
+# explicit rules for the non-ansi source files
+$(OBJ)/curses.o :
+	$(CC) -c $(CFLAGS) $(SRC)/$(*F).c -o $@
+$(OBJ)/machdep.o :
+	$(CC) -c $(CFLAGS) $(SRC)/$(*F).c -o $@
+
+# header files
+$(OBJ)/curses.o : $(H)/rogue.h
+$(OBJ)/hit.o : $(H)/rogue.h
+$(OBJ)/init.o : $(H)/rogue.h $(H)/version.h $(H)/paths.h
+$(OBJ)/invent.o : $(H)/rogue.h $(H)/paths.h
+$(OBJ)/level.o : $(H)/rogue.h
+$(OBJ)/machdep.o : $(H)/rogue.h $(H)/paths.h $(H)/version.h
+$(OBJ)/main.o : $(H)/rogue.h
+$(OBJ)/message.o : $(H)/rogue.h $(H)/paths.h
+$(OBJ)/monster.o : $(H)/rogue.h
+$(OBJ)/move.o : $(H)/rogue.h
+$(OBJ)/object.o : $(H)/rogue.h $(H)/paths.h
+$(OBJ)/pack.o : $(H)/rogue.h
+$(OBJ)/play.o : $(H)/rogue.h $(H)/version.h
+$(OBJ)/random.o :
+$(OBJ)/ring.o : $(H)/rogue.h
+$(OBJ)/room.o : $(H)/rogue.h
+$(OBJ)/save.o : $(H)/rogue.h
+$(OBJ)/score.o : $(H)/rogue.h $(H)/paths.h
+$(OBJ)/spec_hit.o : $(H)/rogue.h
+$(OBJ)/throw.o : $(H)/rogue.h
+$(OBJ)/trap.o : $(H)/rogue.h
+$(OBJ)/use.o : $(H)/rogue.h
+$(OBJ)/zap.o : $(H)/rogue.h
+
+###############################################################################
+# housekeeping
+
+.PHONY: spotless clean
+
+spotless : clean
+	@if exist $(EXE)\$(GAME).exe del $(EXE)\$(GAME).exe
+	@if exist $(EXE)\rogue.sco del $(EXE)\rogue.sco
+	@if exist $(EXE)\rogue.sav del $(EXE)\rogue.sav
+	@if exist $(EXE)\screen.txt del $(EXE)\screen.txt
+
+clean :
+	@if exist $(OBJ)\curses.o del $(OBJ)\curses.o
+	@if exist $(OBJ)\hit.o del $(OBJ)\hit.o
+	@if exist $(OBJ)\init.o del $(OBJ)\init.o
+	@if exist $(OBJ)\invent.o del $(OBJ)\invent.o
+	@if exist $(OBJ)\level.o del $(OBJ)\level.o
+	@if exist $(OBJ)\machdep.o del $(OBJ)\machdep.o
+	@if exist $(OBJ)\main.o del $(OBJ)\main.o
+	@if exist $(OBJ)\message.o del $(OBJ)\message.o
+	@if exist $(OBJ)\monster.o del $(OBJ)\monster.o
+	@if exist $(OBJ)\move.o del $(OBJ)\move.o
+	@if exist $(OBJ)\object.o del $(OBJ)\object.o
+	@if exist $(OBJ)\pack.o del $(OBJ)\pack.o
+	@if exist $(OBJ)\play.o del $(OBJ)\play.o
+	@if exist $(OBJ)\random.o del $(OBJ)\random.o
+	@if exist $(OBJ)\ring.o del $(OBJ)\ring.o
+	@if exist $(OBJ)\room.o del $(OBJ)\room.o
+	@if exist $(OBJ)\save.o del $(OBJ)\save.o
+	@if exist $(OBJ)\score.o del $(OBJ)\score.o
+	@if exist $(OBJ)\spec_hit.o del $(OBJ)\spec_hit.o
+	@if exist $(OBJ)\throw.o del $(OBJ)\throw.o
+	@if exist $(OBJ)\trap.o del $(OBJ)\trap.o
+	@if exist $(OBJ)\use.o del $(OBJ)\use.o
+	@if exist $(OBJ)\zap.o del $(OBJ)\zap.o

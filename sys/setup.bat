@@ -9,12 +9,12 @@ goto end
 
 :compiler
 if "%1"=="wcc" goto WATCOM
-if "%1"=="gcc" goto DJGPP
+if "%1"=="djgpp" goto DJGPP
 if "%1"=="msc" goto MICROSOFT
 echo Usage: setup compiler
 echo  supported compilers:
 echo   wcc - Open Watcom
-echo   gcc - DJGPP
+echo   djgpp - DJGPP
 echo   msc - Microsoft C
 goto end
 
@@ -25,7 +25,7 @@ goto common
 
 :DJGPP
 echo Setting up for DJGPP...
-set makefile=makefile.gcc
+set makefile=makefile.dj
 goto common
 
 :MICROSOFT
