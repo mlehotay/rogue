@@ -1,6 +1,18 @@
 #define VERSION_MAJOR 2
 #define VERSION_MINOR 1
-#define VERSION_PATCH 0
+#define VERSION_PATCH 99
+#define VERSION_COMMENT "ack! pft!" /* max 13 chars */
+
+/*****************************************************************************/
+/* Version 2.2.x */
+
+/*
+ *  Rogue Clone IV 2.2.0, in development
+ *  todo: fix broken curses support
+ *  todo: port to Linux
+ *  todo: fix some bugs
+ *  todo: apply some patches (but not ansification patches, not yet)
+ */
 
 /*****************************************************************************/
 /* Version 2.1.x */
@@ -71,14 +83,14 @@
   #define PATCH_STRING "." STR(VERSION_PATCH)
 #endif
 
-#ifdef RELEASE /* define this on the [n|w]make command line */
-  #define REL_STRING ""
+#ifdef VERSION_COMMENT
+  #define REL_STRING " (" VERSION_COMMENT ")"
 #else
-  #define REL_STRING " (pre-release)"
+  #define REL_STRING ""
 #endif
 
-#if defined(__DOS__) || defined(MSDOS)
-  #if _M_IX86 >= 300 ||  defined(__i386__) || defined(__386__)
+#if defined(__DOS__) || defined(__MSDOS__) || defined(MSDOS)
+  #if _M_IX86 >= 300 || defined(__i386__) || defined(__386__)
     #define PORT "32-bit DOS"
   #else
     #define PORT "16-bit DOS"
