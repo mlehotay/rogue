@@ -499,7 +499,7 @@ hallucinate()
 		ch = mvinch(obj->row, obj->col);
 		if (((ch < 'A') || (ch > 'Z')) &&
 			((obj->row != rogue.row) || (obj->col != rogue.col)))
-//		if ((ch != ' ') && (ch != '.') && (ch != '\xB1') && (ch != '+')) {
+		/* if ((ch != ' ') && (ch != '.') && (ch != '\xB1') && (ch != '+')) { */
 		if (strchr(steadychars, ch) == 0) {
 			cch.b16 = gr_obj_char(-1).b16;
 			if (!use_color) {

@@ -112,8 +112,8 @@ typedef union _colorChar    COLORBUF;
 
 int LINES=DROWS, COLS=DCOLS;
 
-// static char terminal[DROWS][DCOLS];
-// static char buffer[DROWS][DCOLS];
+/* static char terminal[DROWS][DCOLS]; */
+/* static char buffer[DROWS][DCOLS]; */
 static COLORBUF terminal[DROWS][DCOLS];
 static COLORBUF buffer[DROWS][DCOLS];
 
@@ -562,14 +562,14 @@ nonl()
  *		  ulrow: upper-left row of the subwindow
  *		  ulcol: upper-left column of the subwindow
  */
-/*
+#if 0
 overlay(color_char cca[][], int rows, int cols, int ulrow, int ulcol)
 {
 	int r, c, ar, ar0, ac;
 	int lrrow, lrcol;
 	color_char cc;
 
-	// compute window dimensions and override any insanity
+	/* compute window dimensions and override any insanity */
 	if (rows < 1  ||  cols < 1)
 		return 0;
 	ulrow = MAX(MIN_ROW, ulrow);
@@ -577,14 +577,13 @@ overlay(color_char cca[][], int rows, int cols, int ulrow, int ulcol)
 	lrrow = MIN(ulrow + rows, DROWS);
 	lrcol = MIN(ulcol + cols, DCOLS);
 
-	// We will loop until all rows in cca are displayed
+	/* We will loop until all rows in cca are displayed */
 	ar = 0;
 	do while (ar < rows) {
 
-		// write the next screenful of data.  Reserve the bottom
-		// row for "Press Space" messages.
-		//
-		ar0 = ar;		// save where our screenful begins
+		/* write the next screenful of data.  Reserve the bottom
+		   row for "Press Space" messages. */		
+		ar0 = ar;		/* save where our screenful begins */
 		for (r=ulrow; r<=lrrow-1 && ; r++) {
 			for (c=ulcol, ac=0; c<=lrcol; c++, ac++) {
 				cc = mvincch(r, c);
@@ -594,7 +593,7 @@ overlay(color_char cca[][], int rows, int cols, int ulrow, int ulcol)
 			ar++;
 		}
 }
-*/
+#endif
 
 
 
@@ -653,10 +652,10 @@ static put_color_char_at(register int row, register int col, COLORBUF cb)
     WriteConsoleOutputAttribute(hStdOut, &attrib, 1, coord, &n);
 #else
     regs.h.ah = 0x09;
-    //    regs.h.al = (ch & ~ST_MASK);
+    /* regs.h.al = (ch & ~ST_MASK); */
     regs.h.al = cb.b8.ch;
     regs.h.bh = videopage;
-    //    regs.h.bl = (ch & ST_MASK) ? 0x0f : 0x07;
+    /* regs.h.bl = (ch & ST_MASK) ? 0x0f : 0x07; */
     regs.h.bl = cb.b8.color;
     regs.x.cx = 1;
     intr_fn(0x10, &regs);

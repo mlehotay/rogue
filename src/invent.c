@@ -279,7 +279,7 @@ unsigned short mask;
 		obj = obj->next_object;
 	}
 	(void) colorize(press_space, MAKE_COLOR(WHITE, BLACK), descs[i++]);
-//	(void) strcpy(descs[i++], press_space);
+	/* (void) strcpy(descs[i++], press_space); */
 	if (maxlen < 27) maxlen = 27;
 	col = DCOLS - (maxlen + 2);
 
@@ -432,7 +432,7 @@ int ch;
 
 		if (ch <= '\031') {
 			ch += 96;
-//			(void) strcpy(until, "until adjascent");
+			/* (void) strcpy(until, "until adjascent"); */
 			(void) strcpy(until, "until adjacent");		/* NS - :-) */
 		} else {
 			ch += 32;

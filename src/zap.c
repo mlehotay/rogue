@@ -273,7 +273,7 @@ object *monster;
  *	   hit along its path.
  */
 static void clear_wand_effect(short orow, short ocol, short row, short col, short dir) {
-//	short ch;
+	/* short ch; */
 
 	message("", 0); /* causes a --more-- message */
 	check_message();
@@ -281,8 +281,8 @@ static void clear_wand_effect(short orow, short ocol, short row, short col, shor
 	while (orow!=row || ocol!=col) {
 		get_dir_rc(dir, &orow, &ocol, 1);
 		mvaddcch(orow, ocol, get_dungeon_char(orow, ocol));
-//		ch = mvinch(orow, ocol);
-//		mvaddch(orow, ocol, ch);
+		/* ch = mvinch(orow, ocol); */
+		/* mvaddch(orow, ocol, ch); */
 	}
 	mvaddcch(rogue.row, rogue.col, get_rogue_char());
 	refresh();
@@ -361,7 +361,7 @@ void bounce(short ball, short dir, short row, short col, short r) {
 
 	orow = row;
 	ocol = col;
-//	standout();
+	/* standout(); */
 	do {
 		get_dir_rc(dir, &row, &col, 1);
 		cch = mvincch(row, col);
@@ -374,7 +374,7 @@ void bounce(short ball, short dir, short row, short col, short r) {
 				(dungeon[row][col] & DOOR) ||
 				(dungeon[row][col] & ANYROOMSIDE) ||
 				((row == rogue.row) && (col == rogue.col))));
-//	standend();
+	/* standend(); */
 	refresh();
 
 	if (dungeon[row][col] & MONSTER) {

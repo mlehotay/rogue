@@ -428,8 +428,8 @@ boolean msg_only;
 		rogue.moves_left -= (get_rand(1,4) == 1);
 		break;
 	case -1:
-//		NS: The original bug is funny enough to leave here for posterity. :-)
-//		rogue.moves_left -= (rogue.moves_left % 2);
+		/* NS: The original bug is funny enough to leave here for posterity. :-)
+		 * rogue.moves_left -= (rogue.moves_left % 2); */
 		rogue.moves_left -= get_rand(0,1);
 		break;
 	case 0:
@@ -438,7 +438,7 @@ boolean msg_only;
 	case 1:
 		rogue.moves_left--;
 		(void) check_hunger(1);
-//		rogue.moves_left -= (rogue.moves_left % 2);
+		/* rogue.moves_left -= (rogue.moves_left % 2); */
 		rogue.moves_left -= get_rand(0,1);
 		break;
 	case 2:

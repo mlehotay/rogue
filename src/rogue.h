@@ -390,7 +390,7 @@ typedef struct rm room;
 #define STAT_ALL 0377
 
 
-// #define PARTY_TIME 10 	/* (NS - this is unused) one party somewhere in each 10 level span */
+/* #define PARTY_TIME 10 */ 	/* (NS - this is unused) one party somewhere in each 10 level span */
 #define PARTY_PCT	8	/* NS - % of levels having a party room */
 #define BIG_PARTY_PCT	1	/* NS - % of party rooms that are supersized */
 

@@ -853,7 +853,7 @@ discovery()
 		obj = obj->next_object;
 	}
 	(void) colorize(press_space, MAKE_COLOR(WHITE, BLACK), descs[i++]);
-//	(void) strcpy(descs[i++], press_space);
+	/* (void) strcpy(descs[i++], press_space); */
 	if (maxlen < 27) maxlen = 27;
 	col = DCOLS - (maxlen + 2);
 
