@@ -1,7 +1,7 @@
 # NMAKE Makefile for VC98
 
 CFLAGS = /nologo #want /W4
-LDFLAGS = /nologo /warn:3
+LDFLAGS = /nologo /incremental:no /warn:3
 LDLIBS =
 
 src = src
@@ -41,6 +41,8 @@ $(obj)\curses.obj : $(src)\curses.c $(h)\rogue.h
     @$(CC) /c $(CFLAGS) /Fo$(obj)\ $(src)\$(@B).c
 $(obj)\machdep.obj : $(src)\machdep.c $(h)\rogue.h $(h)\paths.h $(h)\version.h
     @$(CC) /c $(CFLAGS) /Fo$(obj)\ $(src)\$(@B).c
+
+# need to add dependencies for every object file
 
 ###############################################################################
 # housekeeping
