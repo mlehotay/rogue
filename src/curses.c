@@ -727,6 +727,11 @@ static cls()
     regs.h.ah = 0x00;
     regs.h.al = videomode;
     intr_fn(0x10, &regs);
+
+    /* turn off the blinkin' blinking */
+    regs.x.ax = 0x1003;
+    regs.x.bx = 0;
+    intr_fn(0x10, &regs);
 #endif
 }
 
