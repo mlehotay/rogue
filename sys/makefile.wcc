@@ -1,0 +1,106 @@
+object_files = curses.obj hit.obj init.obj invent.obj level.obj machdep.obj &
+    main.obj message.obj monster.obj move.obj object.obj pack.obj play.obj &
+    random.obj ring.obj room.obj save.obj score.obj spec_hit.obj throw.obj &
+    trap.obj use.obj zap.obj
+
+# eventually want to compile with /oaxt /w3
+wcc_options = /zq /w2
+wlink_options =
+
+rogue : rogue.exe .SYMBOLIC
+    @%null
+
+rogue.exe : $(object_files) rogue.lnk
+    wlink $(wlink_options) @$^*
+
+# explicit rules for non-ansi source files
+.ERASE
+curses.obj : curses.c rogue.h
+    wcc $[*.c $(wcc_options)
+
+# implicit rule for ansi source files
+.ERASE
+.c.obj:
+    wcc $[*.c $(wcc_options) /za
+
+hit.obj : hit.c rogue.h
+init.obj : init.c rogue.h paths.h
+invent.obj : invent.c rogue.h
+level.obj : level.c rogue.h
+machdep.obj : machdep.c rogue.h paths.h version.h
+main.obj : main.c rogue.h
+message.obj : message.c rogue.h paths.h
+monster.obj : monster.c rogue.h
+move.obj : move.c rogue.h
+object.obj : object.c rogue.h paths.h
+pack.obj : pack.c rogue.h
+play.obj : play.c rogue.h version.h
+random.obj : random.c
+ring.obj : ring.c rogue.h
+room.obj : room.c rogue.h
+save.obj : save.c rogue.h
+score.obj : score.c rogue.h paths.h
+spec_hit.obj : spec_hit.c rogue.h
+throw.obj : throw.c rogue.h
+trap.obj : trap.c rogue.h
+use.obj : use.c rogue.h
+zap.obj : zap.c rogue.h
+
+spotless : clean .SYMBOLIC
+    @if exist rogue.exe del rogue.exe
+    @if exist rogue.sco del rogue.sco
+    @if exist rogue.sav del rogue.sav
+    @if exist screen.txt del screen.txt
+
+clean : oclean eclean .SYMBOLIC
+    @if exist rogue.map del rogue.map
+
+oclean : .SYMBOLIC
+    @if exist curses.obj del curses.obj
+    @if exist hit.obj del hit.obj
+    @if exist init.obj del init.obj
+    @if exist invent.obj del invent.obj
+    @if exist level.obj del level.obj
+    @if exist machdep.obj del machdep.obj
+    @if exist main.obj del main.obj
+    @if exist message.obj del message.obj
+    @if exist monster.obj del monster.obj
+    @if exist move.obj del move.obj
+    @if exist object.obj del object.obj
+    @if exist pack.obj del pack.obj
+    @if exist play.obj del play.obj
+    @if exist random.obj del random.obj
+    @if exist ring.obj del ring.obj
+    @if exist room.obj del room.obj
+    @if exist save.obj del save.obj
+    @if exist score.obj del score.obj
+    @if exist spec_hit.obj del spec_hit.obj
+    @if exist throw.obj del throw.obj
+    @if exist trap.obj del trap.obj
+    @if exist use.obj del use.obj
+    @if exist zap.obj del zap.obj
+
+eclean : .SYMBOLIC
+    @if exist curses.err del curses.err
+    @if exist hit.err del hit.err
+    @if exist init.err del init.err
+    @if exist invent.err del invent.err
+    @if exist level.err del level.err
+    @if exist machdep.err del machdep.err
+    @if exist main.err del main.err
+    @if exist message.err del message.err
+    @if exist monster.err del monster.err
+    @if exist move.err del move.err
+    @if exist object.err del object.err
+    @if exist pack.err del pack.err
+    @if exist play.err del play.err
+    @if exist random.err del random.err
+    @if exist ring.err del ring.err
+    @if exist room.err del room.err
+    @if exist save.err del save.err
+    @if exist score.err del score.err
+    @if exist spec_hit.err del spec_hit.err
+    @if exist throw.err del throw.err
+    @if exist trap.err del trap.err
+    @if exist use.err del use.err
+    @if exist zap.err del zap.err
