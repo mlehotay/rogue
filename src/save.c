@@ -73,6 +73,12 @@ extern boolean detect_monster;
 extern boolean wizard;
 extern boolean score_only;
 extern short m_moves;
+extern boolean jump;
+extern boolean passgo;
+extern boolean display_skull;
+extern boolean use_color;
+extern boolean use_doschars;
+extern char *fruit;
 
 extern boolean msg_cleared;
 
@@ -148,6 +154,12 @@ char *sfile;
 	r_write(fp, (char *) &wizard, sizeof(wizard));
 	r_write(fp, (char *) &score_only, sizeof(score_only));
 	r_write(fp, (char *) &m_moves, sizeof(m_moves));
+	r_write(fp, (char *) &jump, sizeof(jump));
+	r_write(fp, (char *) &passgo, sizeof(passgo));
+	r_write(fp, (char *) &display_skull, sizeof(display_skull));
+	r_write(fp, (char *) &use_color, sizeof(use_color));
+	r_write(fp, (char *) &use_doschars, sizeof(use_doschars));
+	write_string(fruit, fp);
 	md_gct(&rt_buf);
 	rt_buf.second += 10;		/* allow for some processing time */
 	r_write(fp, (char *) &rt_buf, sizeof(rt_buf));
@@ -216,6 +228,12 @@ char *fname;
 	r_read(fp, (char *) &wizard, sizeof(wizard));
 	r_read(fp, (char *) &score_only, sizeof(score_only));
 	r_read(fp, (char *) &m_moves, sizeof(m_moves));
+	r_read(fp, (char *) &jump, sizeof(jump));
+	r_read(fp, (char *) &passgo, sizeof(passgo));
+	r_read(fp, (char *) &display_skull, sizeof(display_skull));
+	r_read(fp, (char *) &use_color, sizeof(use_color));
+	r_read(fp, (char *) &use_doschars, sizeof(use_doschars));
+	read_string(fruit, fp);
 	r_read(fp, (char *) &saved_time, sizeof(saved_time));
 
 	if (fread(buf, sizeof(char), 1, fp) > 0) {
@@ -285,20 +303,20 @@ FILE *fp;
 boolean rw;
 {
 	short i, j;
-	char buf[DCOLS];
+	color_char buf[DCOLS];
 
 	for (i = 0; i < DROWS; i++) {
 		if (rw) {
 			r_write(fp, (char *) dungeon[i], (DCOLS * sizeof(dungeon[0][0])));
 			for (j = 0; j < DCOLS; j++) {
-				buf[j] = mvinch(i, j);
+				buf[j] = mvincch(i, j);
 			}
-			r_write(fp, buf, DCOLS);
+			r_write(fp, (char *) buf, (DCOLS * sizeof(buf[0])));
 		} else {
 			r_read(fp, (char *) dungeon[i], (DCOLS * sizeof(dungeon[0][0])));
-			r_read(fp, buf, DCOLS);
+			r_read(fp, (char *) buf, (DCOLS * sizeof(buf[0])));
 			for (j = 0; j < DCOLS; j++) {
-				mvaddch(i, j, buf[j]);
+				mvaddcch(i, j, buf[j]);
 			}
 		}
 	}
