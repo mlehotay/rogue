@@ -32,17 +32,40 @@ $(exe)\$(game).exe : $(object_files) $(obj)/rogue.res
 $(obj)/$(game).res : $(sys)/$(game).rc $(resources)
     @$(RC) -fo $@ $(sys)/$(game).rc
 
-#implicit rule for the ansi source files
+# implicit rule for the ansi source files
 {$(src)}.c{$(obj)}.obj:
     @$(CC) /c $(CFLAGS) /Fo$(obj)\ /Za $<
 
-#explicit rule for the non-ansi source files
-$(obj)\curses.obj : $(src)\curses.c $(h)\rogue.h
+# explicit rules for the non-ansi source files
+$(obj)\curses.obj :
     @$(CC) /c $(CFLAGS) /Fo$(obj)\ $(src)\$(@B).c
-$(obj)\machdep.obj : $(src)\machdep.c $(h)\rogue.h $(h)\paths.h $(h)\version.h
+$(obj)\machdep.obj :
     @$(CC) /c $(CFLAGS) /Fo$(obj)\ $(src)\$(@B).c
 
-# need to add dependencies for every object file
+# header files
+$(obj)\curses.obj : $(h)\rogue.h
+$(obj)\hit.obj : $(h)\rogue.h
+$(obj)\init.obj : $(h)\rogue.h $(h)\version.h $(h)\paths.h
+$(obj)\invent.obj : $(h)\rogue.h $(h)\paths.h
+$(obj)\level.obj : $(h)\rogue.h
+$(obj)\machdep.obj : $(h)\rogue.h $(h)\paths.h $(h)\version.h
+$(obj)\main.obj : $(h)\rogue.h
+$(obj)\message.obj : $(h)\rogue.h $(h)\paths.h
+$(obj)\monster.obj : $(h)\rogue.h
+$(obj)\move.obj : $(h)\rogue.h
+$(obj)\object.obj : $(h)\rogue.h $(h)\paths.h
+$(obj)\pack.obj : $(h)\rogue.h
+$(obj)\play.obj : $(h)\rogue.h $(h)\version.h
+$(obj)\random.obj :
+$(obj)\ring.obj : $(h)\rogue.h
+$(obj)\room.obj : $(h)\rogue.h
+$(obj)\save.obj : $(h)\rogue.h
+$(obj)\score.obj : $(h)\rogue.h $(h)\paths.h
+$(obj)\spec_hit.obj : $(h)\rogue.h
+$(obj)\throw.obj : $(h)\rogue.h
+$(obj)\trap.obj : $(h)\rogue.h
+$(obj)\use.obj : $(h)\rogue.h
+$(obj)\zap.obj : $(h)\rogue.h
 
 ###############################################################################
 # housekeeping
