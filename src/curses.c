@@ -147,7 +147,7 @@ static wrefresh(WINDOW *scr);
  */
 rgetchar()
 {
-    register ch;
+    unsigned char ch;
 #ifdef _MSC_VER
     INPUT_RECORD ir;
     DWORD n;
@@ -163,7 +163,8 @@ rgetchar()
 	if(!ReadConsoleInput(hStdIn, &ir, 1, &n) ||
 		ir.EventType != KEY_EVENT || !ir.Event.KeyEvent.bKeyDown)
 	    continue;
-	
+
+	/* convert keypad input to rogue commands */	
 	switch(ir.Event.KeyEvent.wVirtualKeyCode) {
 	case VK_NUMPAD9: case VK_PRIOR:
 	    ir.Event.KeyEvent.uChar.AsciiChar = 'u'; break;
@@ -184,23 +185,32 @@ rgetchar()
 	case VK_DELETE:
 	    ir.Event.KeyEvent.uChar.AsciiChar = '.'; break;
 	}
-	
+
+	/* apply shift or control to keypad movement keys */	
 	if((ir.Event.KeyEvent.wVirtualKeyCode>=VK_PRIOR &&
 		ir.Event.KeyEvent.wVirtualKeyCode<=VK_DOWN) || 
 		(ir.Event.KeyEvent.wVirtualKeyCode>=VK_NUMPAD1 &&
-		ir.Event.KeyEvent.wVirtualKeyCode<=VK_NUMPAD9)) {
-	    boolean scrolllock = ir.Event.KeyEvent.dwControlKeyState &
-				SCROLLLOCK_ON;
-	    boolean shift = ir.Event.KeyEvent.dwControlKeyState &
-		(SHIFT_PRESSED | LEFT_CTRL_PRESSED | RIGHT_CTRL_PRESSED);
-	    
-	    if((scrolllock && !shift) || (!scrolllock && shift)) {
-		/* convert to control character */
+		ir.Event.KeyEvent.wVirtualKeyCode<=VK_NUMPAD9)) {	    
+	    if(ir.Event.KeyEvent.dwControlKeyState & SHIFT_PRESSED)
+		ir.Event.KeyEvent.uChar.AsciiChar -= ('a' - 'A');
+	    else if(ir.Event.KeyEvent.dwControlKeyState & (LEFT_CTRL_PRESSED |
+		    RIGHT_CTRL_PRESSED))
 		ir.Event.KeyEvent.uChar.AsciiChar -= ('a' - 1);
+	
+	    /* Check for fast play mode, but only for the keypad. The current
+	     * method of converting y to ^y can mess up answers to y/n questions. */
+	    if(ir.Event.KeyEvent.dwControlKeyState & SCROLLLOCK_ON) {
+		if(strchr("hjklyubn", ir.Event.KeyEvent.uChar.AsciiChar))
+		    ir.Event.KeyEvent.uChar.AsciiChar -= ('a' - 1);
+		else if(strchr("HJKLYUBN", ir.Event.KeyEvent.uChar.AsciiChar))
+		    ir.Event.KeyEvent.uChar.AsciiChar += ('a' - 'A');
+		else if(strchr("\010\012\013\014\031\025\002\016",
+		    ir.Event.KeyEvent.uChar.AsciiChar))
+		    ir.Event.KeyEvent.uChar.AsciiChar += ('a' - 1);
 	    }
 	}
 
-	if(!(ch = ir.Event.KeyEvent.uChar.AsciiChar))
+	if(!(ch = ir.Event.KeyEvent.uChar.AsciiChar) || ch > 127)
 	    continue;
 #else
 	regs.h.ah = 0x00; /* get keystroke */
