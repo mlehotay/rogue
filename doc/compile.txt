@@ -1,0 +1,35 @@
+Rogue Clone IV compilation instructions
+=======================================
+
+Rogue Clone IV can be compiled with a number of different compilers and for a
+number of different systems. This file contains instructions for building rogue
+and links to places to go for help if need it.
+
+The first thing you should do is visit http://rogueclone.sourceforge.net and
+make sure you have the latest version of the source code. Then unpack the code
+to a dedicated new directory, which you can call anything you want. In these
+instructions it will be referred to as the "top" directory. Below the top
+directory there should be three subdirectories:
+
+The doc directory contains documentation and other general information
+The src directory contains the source code for Rogue Clone IV
+The sys directory contains makefiles and other system dependant things
+
+To compile a 16-bit DOS executable using Open Watcom
+  1) cd to the sys subdirectory and run setup wcc
+  2) cd to the top directory and run wmake
+
+To compile a 32-bit DOS executable using DJGPP
+  1) cd to the sys subdirectory and run setup gcc
+  2) cd to the top directory run make
+
+To compile a 32-bit Windows console application with Visual C++
+  1) cd to the sys subdirectory and run setup msc
+  2) cd to the top directory and run nmake
+
+That's it. If everything went as it should have your executable will be in the
+newly created exe directory.
+
+If you experience any problems email the rogueclone-devel mailing list at
+rogueclone-devel@lists.sourceforge.net and ask for help. You can view the list
+archives at http://sourceforge.net/mailarchive/forum.php?forum_id=37360
