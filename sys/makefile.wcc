@@ -6,10 +6,10 @@ OBJ = o
 EXE = exe
 
 GAME = rogue
-STACK = 4096
+STACK = 8k
 
 # eventually want to compile with -wx
-wcc_options = -bt=dos -mm -zq -w2 -fr -fo=$(OBJ)\
+wcc_options = -bt=dos -mm -zq -w2 -ox -fr -fo=$(OBJ)\
 wlink_options =
 
 object_files = $(OBJ)\curses.obj $(OBJ)\hit.obj $(OBJ)\init.obj &
