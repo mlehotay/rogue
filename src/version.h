@@ -1,50 +1,20 @@
 #define VERSION_MAJOR 2
 #define VERSION_MINOR 1
 #define VERSION_PATCH 0
-#define EXPERIMENTAL  1
-
-#define STRINGIZE(x) #x
-#define STR(x) STRINGIZE(x)
-
-#if VERSION_PATCH == 0
-  #define PATCH_STRING
-#else
-  #define PATCH_STRING "." STR(VERSION_PATCH)
-#endif
-
-#if EXPERIMENTAL == 0
-  #define DEV_STRING
-#else
-  #define DEV_STRING " (in development)"
-#endif
-
-#define VERSION_STRING "Rogue Clone IV version " STR(VERSION_MAJOR) \
-                       "." STR(VERSION_MINOR) PATCH_STRING DEV_STRING
-
-#define LONG_VERSION_STRING VERSION_STRING " built " __DATE__ " " __TIME__
-
-#define COPYRIGHT_LINE1 \
-"Based on Timothy C. Stoehr's Rogue 5.3 Clone Version III"
-
-#define COPYRIGHT_LINE2 \
-"Copyright (c) 1988, 1993 The Regents of the University of California"
-
 
 /*****************************************************************************/
 /* Version 2.1.x */
 
 /*
  *  Rogue Clone IV 2.1.0, February ??, 2004
- *  now builds as a Windows console application as well as DOS
+ *  Nick Straguzzi wrote most of the new code for this version
+ *  new Windows console application port
  *  DOS port now compiles with Open Watcom and DJGPP (abandoned Watcom 7.0)
  *  now supports color graphics throughout
- *  uses PC-Rogue DOS characters
+ *  uses PC-Rogue high ASCII characters
  *  fixed bug in dragon's fire-breathing aim
  *  fixed several bugs pertaining to object naming under gcc
- *  Note: Nick Straguzzi did almost all the coding for this version
  */
-
-
 
 /*****************************************************************************/
 /* Version 2.0.x */
@@ -88,3 +58,47 @@
  *  DOS Rogue Clone 1.0, December 19, 2001
  *  Initial release, based on rogue clone version II
  */
+
+/*****************************************************************************/
+
+#define STRINGIZE(x) #x
+#define STR(x) STRINGIZE(x)
+
+#define NAME_STRING "Rogue Clone IV"
+
+#if VERSION_PATCH == 0
+  #define PATCH_STRING ""
+#else
+  #define PATCH_STRING "." STR(VERSION_PATCH)
+#endif
+
+#ifdef RELEASE /* define this on the [n|w]make command line */
+  #define REL_STRING ""
+#else
+  #define REL_STRING " (pre-release)"
+#endif
+
+#if defined(__DOS__) || defined(MSDOS)
+  #if _M_IX86 >= 300 ||  defined(__i386__) || defined(__386__)
+    #define PORT "32-bit DOS"
+  #else
+    #define PORT "16-bit DOS"
+  #endif
+#elif defined(_WIN32) || defined(__WINDOWS__)
+  #define PORT "Windows"
+#else
+  #define PORT "???"
+#endif
+
+#define VERSION_STRING NAME_STRING " version " STR(VERSION_MAJOR) \
+		"." STR(VERSION_MINOR) PATCH_STRING REL_STRING
+
+#define LONG_VERSION_STRING NAME_STRING " v" STR(VERSION_MAJOR) "." \
+		STR(VERSION_MINOR) PATCH_STRING " for " PORT REL_STRING \
+		" built " __DATE__ " " __TIME__
+
+#define COPYRIGHT_LINE1 \
+    "Derived from Timothy C. Stoehr's Rogue 5.3 Clone version III"
+
+#define COPYRIGHT_LINE2 \
+    "Copyright (c) 1988, 1993 The Regents of the University of California"

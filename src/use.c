@@ -333,7 +333,7 @@ potion_heal(extra)
 		rogue.hp_current = rogue.hp_max;
 	} else {
 		if (ratio < 0.33) {
-			ratio = 0.33;
+			ratio = 0.33f;
 		}
 		if (extra) {
 			ratio += ratio;

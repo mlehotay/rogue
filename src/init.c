@@ -331,7 +331,7 @@ do_opts()
 					display_skull = optval;
 				} else if (!strncmp(eptr, "passgo", 6)) {
 					passgo = optval;
-				} else if (!strncmp(eptr, "doschars", 8)) {
+				} else if (!strncmp(eptr, "PCgraphics", 10)) {
 					use_doschars = optval;
 				} else if (!strncmp(eptr, "color", 5)) {
 					use_color = optval;

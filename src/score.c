@@ -51,7 +51,7 @@
 extern char *login_name;
 extern char *m_names[];
 extern short cur_level, max_level;
-extern boolean score_only, display_skull, msg_cleared, use_color;
+extern boolean score_only, display_skull, msg_cleared, use_color, use_doschars;
 extern char *byebye_string;
 
 /*  NS:  Added color support
@@ -100,9 +100,9 @@ short other;
 	sprintf(gold, "%ld gold", rogue.gold);
 
 	if ((!other) && (display_skull)) {
-		clear();
+	    clear();
 
-#if RIP_TOMBSTONE == 0	/* classic skull */
+	    if(!use_doschars) { /* classic skull */
 		mvaddstr(4,  32, "__---------__");
 		mvaddstr(5,  30, "_~             ~_");
 		mvaddstr(6,  29, "/                 \\");
@@ -125,7 +125,7 @@ short other;
 		sprintf(buf+strlen(buf), "%s", gold);
 		center(22, buf);
 
-#else /* modern tombstone, pulled from PC-Rogue with apologies */
+	    } else {/* modern tombstone, pulled from PC-Rogue with apologies */
 		boxchars[0] = get_terrain_char(HORWALL);
 		boxchars[1] = get_terrain_char(VERTWALL);
 		boxchars[2] = get_terrain_char(ULCORNER);
@@ -141,11 +141,10 @@ short other;
 		center(14, buf);
 		center(16, gold);
 		/* NS: ought to put the date here for effect. */
-	    center_in_color(21, "  *    *      * ", MAKE_COLOR(RED,BLACK));
-	    center_in_color(22, "___\\/(\\/)/(\\/ \\\\(//)\\)\\/(//)\\\\)//(\\__",
+		center_in_color(21, "  *    *      * ", MAKE_COLOR(RED,BLACK));
+		center_in_color(22, "___\\/(\\/)/(\\/ \\\\(//)\\)\\/(//)\\\\)//(\\__",
 	    				MAKE_COLOR(GREEN,BLACK));
-#endif
-
+	    }
 	} else {
 		message(buf, 0);
 	}

@@ -82,7 +82,7 @@ struct option {
 		1, (char **) 0, &use_color, 0, 1
 	},
 	{
-		"Use DOS character set (\"doschars\"): ",
+		"Use extended ASCII graphics (\"PCgraphics\"): ",
 		1, (char **) 0, &use_doschars, 0, 1
 	},
 	{
@@ -239,10 +239,6 @@ color_char get_terrain_char(mask)
 				MAKE_COLOR(scrTerrain[i].fgcolor, scrTerrain[i].bgcolor) :
 				MAKE_COLOR(WHITE, BLACK);
 			cc.b8.ch = use_doschars ? scrTerrain[i].dosch : scrTerrain[i].ch;
-
-			/* NS: Mild hack needed to prevent an aesthetic disaster :-) */
-			if (mask == FLOOR  &&  !use_doschars)
-				cc.b8.color = MAKE_COLOR(GREEN,BLACK);
 
 			return cc;
 		}

@@ -214,8 +214,7 @@ CH:
 			throw();
 			break;
 		case 'v':
-			message("rogue-clone: Version III. (Tim Stoehr was here), tektronix!zeus!tims", 0);
-            message(LONG_VERSION_STRING, 0);
+			message(LONG_VERSION_STRING, 0);
 			break;
 		case 'Q':
 			quit(0);

@@ -29,6 +29,12 @@
  * @(#)pathnames.h 8.1 (Berkeley) 5/31/93
  */
 
+#ifdef _MSC_VER
+#define _PATH_SCOREFILE "rogue.sco"
+#define _PATH_ERRORFILE "rogue.sav"
+#define _PATH_SCREENFILE "screen.txt"
+#else
 #define _PATH_SCOREFILE "ROGUE.SCO"
 #define _PATH_ERRORFILE "ROGUE.SAV"
 #define _PATH_SCREENFILE "SCREEN.TXT"
+#endif
