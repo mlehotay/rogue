@@ -1,8 +1,8 @@
 # rogue clone IV makefile for DJGPP Make
 
-CFLAGS = -O2 # -Wall
+CFLAGS = -O2 -DHAVECURSES # -Wall
 LDFLAGS = -s
-LDLIBS =
+LDLIBS = -lpdcurses
 
 SRC = src
 H = src
@@ -29,9 +29,9 @@ $(OBJ)/%.o : $(SRC)/%.c
 	$(CC) -c $(CFLAGS) -ansi -pedantic $(SRC)/$(*F).c -o $@
 
 # explicit rules for the non-ansi source files
-$(OBJ)/curses.o :
+$(OBJ)/curses.o : $(SRC)/curses.c
 	$(CC) -c $(CFLAGS) $(SRC)/$(*F).c -o $@
-$(OBJ)/machdep.o :
+$(OBJ)/machdep.o : $(SRC)/machdep.c
 	$(CC) -c $(CFLAGS) $(SRC)/$(*F).c -o $@
 
 # header files
