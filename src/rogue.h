@@ -389,21 +389,17 @@ typedef struct rm room;
 #define STAT_LABEL 0200
 #define STAT_ALL 0377
 
-#define STAT_LABELCOLOR		MAKE_COLOR(BRIGHT_CYAN, BLACK)
-#define STAT_OKCOLOR		MAKE_COLOR(BRIGHT_CYAN, BLACK)
-#define STAT_WARNCOLOR		MAKE_COLOR(BRIGHT_YELLOW, BLACK)
-#define STAT_DANGERCOLOR	MAKE_COLOR(BRIGHT_RED, BLACK)
-
 
 // #define PARTY_TIME 10 	/* (NS - this is unused) one party somewhere in each 10 level span */
-#define PARTY_PCT 		7	/* NS - % of levels having a party room */
+#define PARTY_PCT	8	/* NS - % of levels having a party room */
 #define BIG_PARTY_PCT	1	/* NS - % of party rooms that are supersized */
 
 #define MAX_TRAPS 10	/* maximum traps per level */
 
 #define HIDE_PERCENT 12
 
-#define FRUIT_TYPE "mango"		/* NS - more appetizing than slime molds */
+#define FRUIT_TYPE "slime-mold"
+/*#define FRUIT_TYPE "mango"*/	/* NS - more appetizing than slime molds */
 
 struct tr {
 	short trap_type;

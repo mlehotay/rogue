@@ -796,13 +796,14 @@ GIL:
 
 
 
+#ifdef DISCOVERY
 /* NS: Shows a list of what's been discovered for each of the basic
  *	   object types.  Under development.
  */
 
 discovery()
 {
-/*	object *obj;
+	object *obj;
 	short i = 0, j, maxlen = 0, n;
 	char bwdesc[DCOLS];
 	color_char descs[MAX_PACK_COUNT+1][DCOLS];
@@ -875,5 +876,5 @@ discovery()
 	for (j = 1; ((j < i) && (j < DROWS)); j++) {
 		mvaddcstr(j, col, descs[j-1]);
 	}
-*/
 }
+#endif

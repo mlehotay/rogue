@@ -52,10 +52,10 @@ boolean rooms_visited[MAXROOMS];
 extern short blind;
 extern short halluc;
 extern boolean detect_monster, jump, passgo, display_skull;
-extern boolean enable_hypo, use_doschars, use_color;
+extern boolean use_doschars, use_color;
 extern char *login_name, *fruit, *press_space;
 
-#define NOPTS 8
+#define NOPTS 7
 
 struct option {
 	char *prompt;
@@ -76,10 +76,6 @@ struct option {
 	{
 		"Print skull when killed (\"skull\" or \"tomb\"): ",
 		1, (char **) 0, &display_skull, 0, 0
-	},
-	{
-		"Allow death by hypothermia (\"hypo\"): ",
-		1, (char **) 0, &enable_hypo, 0, 0
 	},
 	{
 		"Play in color (\"color\"): ",

@@ -145,7 +145,11 @@ char *syllables[MAXSYLLABLES] = {
 	"poxi "
 };
 
+#ifdef DISCOVERY
 #define COMS 50
+#else
+#define COMS 49
+#endif
 
 struct id_com_s {
 	short com_char;
@@ -195,11 +199,13 @@ struct id_com_s com_id_tab[COMS] = {
 	'.',		".       rest for a turn",
 	'!',		"!       shell escape",
 	',',		",       pick something up",
-    'f',		"f<dir>  fight till death or near death",
+	'f',		"f<dir>  fight till death or near death",
 	'i',		"i       inventory",
 	'F',		"F<dir>  fight till either of you dies",
 	'I',		"I       inventory single item",
-	'D',		"D		 list what you've discovered",
+#ifdef DISCOVERY
+	'D',		"D       list what you've discovered",
+#endif
 	'v',		"v       print version number",
 	'q',		"q       quaff potion",
 	'&',		"&       save screen into '" _PATH_SCREENFILE "'"

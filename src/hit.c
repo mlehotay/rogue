@@ -106,11 +106,6 @@ register object *monster;
 	if (wizard) {
 		damage /= 3;
 	}
-	/* NS: Stealing this excellent idea from PC-Rogue */
-	if (cur_level == 1) {
-		damage /= 2;
-	}
-
 	if (damage > 0) {
 		rogue_damage(damage, monster, 0);
 	}

@@ -54,8 +54,6 @@ char welcome[80];
 char *rest_file = 0;
 boolean cant_int = 0;
 boolean did_int = 0;
-boolean help_only = 0;
-boolean help_env = 0;
 boolean score_only = 0;
 boolean init_curses = 0;
 boolean save_is_interactive = 1;
@@ -64,7 +62,6 @@ boolean display_skull = 1;
 boolean passgo = 0;
 boolean use_doschars = 1;
 boolean use_color = 1;
-boolean enable_hypo = 1;
 
 char *byebye_string = "Okay, bye bye!";
 
@@ -88,15 +85,6 @@ char *argv[];
 
 	do_opts();
 	do_args(argc, argv);
-
-	if (help_only) {
-		if (help_env) {
-			print_env_help();
-		} else {
-			print_cli_help();
-		}
-		md_exit(0);
-	}
 
 	if (!score_only && !rest_file) {
         FILE *fp;
@@ -279,140 +267,26 @@ error_save()
 	clean_up("");
 }
 
-/* NS 15 June 2003: can specify your name and preferred fruit on the
- *		command line, and added CL equivalents for all rogue options.
- *		For booleans, -x and -x+ are equivalent (on), -x- is off;
- *	 	omitting it entirely gives you the default setting (in brackets).
- *		Both "/" and "-" are accepted as option switch prefixes.
- *
- *			-?		  = print help message
- *			-s        = score only
- *			-f xxx    = fruit
- *			-n xxx	  = name
- *			-c[+/-]   = play in color [on]
- *			-d[+/-]   = use dos characters [on]
- *			-j[+/-]   = use jump moves [off]
- *			-h[+/-]   = allow death by hypothermia [on]
- *			-p[+/-]   = follow passage turns [off]
- *			-t[+/-]   = show skull/tombstone at end [on]
- */
 do_args(argc, argv)
 int argc;
 char *argv[];
 {
-	short i;
+	short i, j;
 
 	for (i = 1; i < argc; i++) {
-		if ((argv[i][0] == '-')  ||  (argv[i][0] == '/')) {
-			switch(argv[i][1]) {
+	    if (argv[i][0] == '-' || argv[i][0] == '/') {
+			for (j = 1; argv[i][j]; j++) {
+				switch(argv[i][j]) {
 				case 's':
 					score_only = 1;
 					break;
-				case '?':
-					help_only = 1;
-					if (argv[i][2] == '?')
-						help_env = 1;
-					break;
-				case 'f':
-					i++;
-					if (i < argc) {
-						if (fruit == 0)
-							init_str(&fruit, argv[i]);
-						else
-							strcpy(fruit, argv[i]);
-					}
-					break;
-				case 'n':
-					i++;
-					if (i < argc) {
-						if (login_name == 0)
-							init_str(&login_name, argv[i]);
-						else
-							strcpy(login_name, argv[i]);
-					}
-					break;
-				case 'j':
-					jump = (argv[i][2] != '-');
-					break;
-				case 't':
-					display_skull = (argv[i][2] != '-');
-					break;
-				case 'h':
-					enable_hypo = (argv[i][2] != '-');
-					break;
-				case 'c':
-					use_color = (argv[i][2] != '-');
-					break;
-				case 'd':
-					use_doschars = (argv[i][2] != '-');
-					break;
-				case 'p':
-					passgo = (argv[i][2] != '-');
-					break;
+				}
 			}
 		} else {
 			rest_file = argv[i];
 		}
 	}
 }
-
-
-print_cli_help()
-{
-	printf("%s\n", VERSION_STRING);
-	printf("\n");
-	printf("  rogue [-?] [-s] [-n name] [-f fruit]\n");
-	printf("        [-c] [-d] [-h] [-j] [-p] [-t] [savefile]\n");
-	printf("\n");
-	printf("");
-	printf("     -?       : prints this help message.\n");
-	printf("     -s       : shows scoreboard only.\n");
-	printf("     -n name  : rogue name ");
-	if (login_name[0] != '\0') {
-		printf ("[%s]", login_name);
-	}
-	printf("\n");
-	printf("     -f fruit : preferred fruit [%s]\n",
-		   fruit);
-	printf("     -c[+/-]  : play in color [%s]\n",
-		   OPTIONVALUE(use_color));
-	printf("     -d[+/-]  : use special DOS characters [%s]\n",
-	       OPTIONVALUE(use_doschars));
-	printf("     -h[+/-]  : allow death by hypothermia [%s]\n",
-	       OPTIONVALUE(enable_hypo));
-	printf("     -j[+/-]  : show position only at end of run [%s]\n",
-	       OPTIONVALUE(jump));
-	printf("     -p[+/-]  : follow passage turns while running [%s]\n",
-	       OPTIONVALUE(passgo));
-	printf("     -t[+/-]  : show tombstone/skull upon death [%s]\n",
-	       OPTIONVALUE(display_skull));
-	printf("    savefile  : restores saved game from specified file\n");
-	printf("\n");
-	printf("  For booleans, -x and -x+ both set the option \'on\', -x- is \'off\'\n");
-	printf("  Option defaults can be set using ROGUEOPTS environment value.  Type\n");
-	printf("    \"rogue -??\" for details.\n");
-}
-
-
-
-print_env_help()
-{
-	printf("%s\n", VERSION_STRING);
-	printf("\n");
-	printf("  ROGUEOPTS=option1,option2:value,option3...\n");
-	printf("");
-	printf("     name:Rodney   - rogue name\n");
-	printf("     fruit:mango   - preferred fruit\n");
-	printf("     [no]color     - play in color\n");
-	printf("     [no]doschars  - use special DOS characters\n");
-	printf("     [no]hypo      - allow death by hypothermia\n");
-	printf("     [no]jump      - show position only at end of run\n");
-	printf("     [no]passgo    - follow passage turns while running\n");
-	printf("     [no]skull or [no]tomb\n");
-	printf("                   - print tombstone upon death\n");
-}
-
-
 
 /* NS 15 June 2003 : Updated this to accept negative as well as positive
  *		flags.
@@ -457,8 +331,6 @@ do_opts()
 					display_skull = optval;
 				} else if (!strncmp(eptr, "passgo", 6)) {
 					passgo = optval;
-				} else if (!strncmp(eptr, "hypo", 4)) {
-					enable_hypo = optval;
 				} else if (!strncmp(eptr, "doschars", 8)) {
 					use_doschars = optval;
 				} else if (!strncmp(eptr, "color", 5)) {

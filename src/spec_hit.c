@@ -129,10 +129,7 @@ object *monster;
 			mv_mons();
 		}
 
-	/* NS -- added at behest of my son John, who hates when his characters
-	 *		 die of hypothermia. :-)
-	 */
-		if (enable_hypo  &&  rand_percent(freeze_percent)) {
+		if (rand_percent(freeze_percent)) {
 			for (i = 0; i < 50; i++) {
 				mv_mons();
 			}

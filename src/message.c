@@ -183,120 +183,80 @@ boolean do_echo;
 }
 
 /*
-WAS:
 Level: 99 Gold: 999999 Hp: 999(999) Str: 99(99) Arm: 99 Exp: 21/10000000 Hungry
-
-NOW:
-Level:99  Gold:999999  Hp:999(999)  Str:99(99)  Arm:99  Exp:21/10000000 -Hungry-
 0    5    1    5    2    5    3    5    4    5    5    5    6    5    7    5
 */
 
-/* NS: Color-coded the stats so that dense players get a visual warning when
- *     in trouble.  Apologies to those who dislike it, but I got tired of
- *	   fainting in the middle of a troll-battle because I forgot to eat.
- */
 print_stats(stat_mask)
 register stat_mask;
 {
 	char buf[16];
 	boolean label;
 	int row = DROWS - 1;
-	byte color, label_color, ok_color, warn_color, danger_color;
-	int tmp;
+	byte color;
 
 	label = (stat_mask & STAT_LABEL) ? 1 : 0;
-
-	if (use_color) {
-		label_color = STAT_LABELCOLOR;
-		ok_color = STAT_OKCOLOR;
-		warn_color = STAT_WARNCOLOR;
-		danger_color = STAT_DANGERCOLOR;
-	} else {
-		label_color = MAKE_COLOR(WHITE,BLACK);
-		ok_color = MAKE_COLOR(WHITE,BLACK);
-		warn_color = MAKE_COLOR(WHITE,BLACK);
-		danger_color = MAKE_COLOR(BRIGHT_WHITE,BLACK);
-	}
+	color = use_color ? BRIGHT_YELLOW : MAKE_COLOR(WHITE,BLACK);
 
 	if (stat_mask & STAT_LEVEL) {
 		if (label) {
-			mvaddstr_in_color(row, 0, "Level:", label_color);
+			mvaddstr_in_color(row, 0, "Level: ", color);
 		}
 		/* max level taken care of in make_level() */
 		sprintf(buf, "%d", cur_level);
-		mvaddstr_in_color(row, 6, buf, ok_color);
+		mvaddstr_in_color(row, 7, buf, color);
 		pad(buf, 2);
 	}
 	if (stat_mask & STAT_GOLD) {
 		if (label) {
-			mvaddstr_in_color(row, 10, "Gold:", label_color);
+			mvaddstr_in_color(row, 10, "Gold: ", color);
 		}
 		if (rogue.gold > MAX_GOLD) {
 			rogue.gold = MAX_GOLD;
 		}
 		sprintf(buf, "%ld", rogue.gold);
-		mvaddstr_in_color(row, 15, buf, ok_color);
+		mvaddstr_in_color(row, 16, buf, color);
 		pad(buf, 6);
 	}
 	if (stat_mask & STAT_HP) {
 		if (label) {
-			mvaddstr_in_color(row, 23, "Hp:", label_color);
+			mvaddstr_in_color(row, 23, "Hp: ", color);
 		}
 		if (rogue.hp_max > MAX_HP) {
 			rogue.hp_current -= (rogue.hp_max - MAX_HP);
 			rogue.hp_max = MAX_HP;
 		}
-
-		/* NS:  Warn if HP < half; shout if they're < 20% */
-		sprintf(buf, "%d", rogue.hp_current);
-		color = (rogue.hp_current <= rogue.hp_max / 5) ? danger_color :
-		        (rogue.hp_current <= rogue.hp_max / 2) ? warn_color :
-		        ok_color;
-		mvaddstr_in_color(row, 26, buf, color);
-		tmp = strlen(buf);
-		sprintf(buf, "(%d)", rogue.hp_max);
-		addstr_in_color(buf, label_color);
-		pad(buf, 8-tmp);
+		sprintf(buf, "%d(%d)", rogue.hp_current, rogue.hp_max);
+		mvaddstr_in_color(row, 27, buf, color);
+		pad(buf, 8);
 	}
 	if (stat_mask & STAT_STRENGTH) {
 		if (label) {
-			mvaddstr_in_color(row, 36, "Str: ", label_color);
+			mvaddstr_in_color(row, 36, "Str: ", color);
 		}
 		if (rogue.str_max > MAX_STRENGTH) {
 			rogue.str_current -= (rogue.str_max - MAX_STRENGTH);
 			rogue.str_max = MAX_STRENGTH;
 		}
-
-		/* NS:  Warn if strength <= 14; shout if <= 6 */
-		tmp = rogue.str_current + add_strength;
-		sprintf(buf, "%d", tmp);
-		color = (tmp <= 6) ? danger_color :
-		        (tmp <= 14) ? warn_color : ok_color;
-		mvaddstr_in_color(row, 40, buf, color);
-		tmp = strlen(buf);
-		sprintf(buf, "(%d)", rogue.str_max);
-		addstr_in_color(buf, label_color);
-		pad(buf, 6-tmp);
+		sprintf(buf, "%d(%d)", (rogue.str_current + add_strength),
+			rogue.str_max);
+		mvaddstr_in_color(row, 41, buf, color);
+		pad(buf, 6);
 	}
 	if (stat_mask & STAT_ARMOR) {
 		if (label) {
-			mvaddstr_in_color(row, 48, "Arm: ", label_color);
+			mvaddstr_in_color(row, 48, "Arm: ", color);
 		}
 		if (rogue.armor && (rogue.armor->d_enchant > MAX_ARMOR)) {
 			rogue.armor->d_enchant = MAX_ARMOR;
 		}
-
-		/* NS: Warn if armor = 1 or 2, shout if <= 0 (naked) */
-		tmp = get_armor_class(rogue.armor);
-		sprintf(buf, "%d", tmp);
-		color = (tmp <= 0) ? danger_color :
-		        (tmp <= 2) ? warn_color : ok_color;
-		mvaddstr_in_color(row, 52, buf, color);
+		sprintf(buf, "%d", get_armor_class(rogue.armor));
+		mvaddstr_in_color(row, 53, buf, color);
 		pad(buf, 2);
 	}
 	if (stat_mask & STAT_EXP) {
 		if (label) {
-			mvaddstr_in_color(row, 56, "Exp: ", label_color);
+			mvaddstr_in_color(row, 56, "Exp: ", color);
 		}
 		if (rogue.exp_points > MAX_EXP) {
 			rogue.exp_points = MAX_EXP;
@@ -305,33 +265,11 @@ register stat_mask;
 			rogue.exp = MAX_EXP_LEVEL;
 		}
 		sprintf(buf, "%d/%ld", rogue.exp, rogue.exp_points);
-		mvaddstr_in_color(row, 60, buf, ok_color);
+		mvaddstr_in_color(row, 61, buf, color);
 		pad(buf, 11);
 	}
 	if (stat_mask & STAT_HUNGER) {
-		/* Invert if hungry, warn if weak, shout if faint.  Note that
-		 * if we're playing in color we use a bright white background
-		 * when hungry.
-		 */
-		move(row, 72);
-		switch (hunger_str[0]) {
-			case 'h':
-				color = (use_color) ? MAKE_COLOR(BLACK,WHITE) :
-						INVERT_COLOR(ok_color);
-				break;
-			case 'w':
-				color = (use_color) ? INVERT_COLOR(warn_color) :
-						MAKE_COLOR(BLACK,BRIGHT_WHITE);
-				break;
-			case 'f':
-				color = INVERT_COLOR(danger_color);
-				break;
-			default:
-				color = 0;
-		}
-		addstr_in_color(" ", color);
-		addstr_in_color(hunger_str, color);
-		addstr_in_color(" ", color);
+		mvaddstr_in_color(row, 73, hunger_str, color);
 		clrtoeol();
 	}
 	refresh();

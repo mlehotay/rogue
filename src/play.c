@@ -87,9 +87,11 @@ CH:
 		case 'i':
 			inventory(&rogue.pack, ALL_OBJECTS);
 			break;
+#ifdef DISCOVERY
 		case 'D':
 			discovery();
 			break;
+#endif
 		case 'f':
 			fight(0);
 			break;
