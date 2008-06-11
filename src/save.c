@@ -47,8 +47,9 @@
 #include <stdio.h>
 #include "rogue.h"
 
-void r_read(FILE *fp, char *buf, int n);
+/* static r_read(FILE *fp, char *buf, int n);
 void r_write(FILE *fp, char *buf, int n);
+*/
 
 short write_failed = 0;
 char *save_file = (char *) 0;
@@ -82,7 +83,20 @@ extern char *fruit;
 
 extern boolean msg_cleared;
 
-save_game()
+
+static void write_pack(object *pack, FILE *fp);		/* only used within this file */
+static void read_pack(object *pack, FILE *fp, const boolean is_rogue); /* only used within this file */
+static void rw_dungeon(FILE *fp, const boolean rw);		/* only used within this file */
+static void rw_id(struct id id_table[], FILE *fp, const int n, const boolean wr);		/* only used within this file */
+static void write_string(char *s, FILE *fp);		/* only used within this file */
+static void read_string(char *s, FILE *fp);			/* only used within this file */
+static void rw_rooms(FILE *fp, const boolean rw);			/* only used within this file */
+static void r_read(FILE *fp, char *buf, unsigned int n);		/* only used within this file */
+static void r_write(FILE *fp, const char *buf, unsigned int n);	/* only used within this file */
+static boolean has_been_touched(rogue_time *saved_time, const rogue_time *mod_time);	/*only used within this file*/
+
+
+void save_game(void)
 {
 	check_message();
     message("really save?", 0);
@@ -97,14 +111,14 @@ save_game()
     check_message();
 }
 
-save_into_file(sfile)
-char *sfile;
+
+void save_into_file(char *sfile)
 {
 	FILE *fp;
 	int file_id;
 	char name_buffer[80];
 	char *hptr;
-	struct rogue_time rt_buf;
+	rogue_time rt_buf;
 
 	if (sfile[0] == '~') {
 		if (hptr = md_getenv("HOME")) {
@@ -172,11 +186,11 @@ char *sfile;
 	}
 }
 
-restore(fname)
-char *fname;
+
+void restore(char *fname)
 {
 	FILE *fp;
-	struct rogue_time saved_time, mod_time;
+	rogue_time saved_time, mod_time;
 	char buf[4];
 	int new_file_id, saved_file_id;
 
@@ -255,9 +269,8 @@ char *fname;
 	ring_stats(0);
 }
 
-write_pack(pack, fp)
-object *pack;
-FILE *fp;
+
+static void write_pack(object *pack, FILE *fp)	/* only used within this file */
 {
 	object t;
 
@@ -268,10 +281,8 @@ FILE *fp;
 	r_write(fp, (char *) &t, sizeof(object));
 }
 
-read_pack(pack, fp, is_rogue)
-object *pack;
-FILE *fp;
-boolean is_rogue;
+
+static void read_pack(object *pack, FILE *fp, const boolean is_rogue) /* only used within this file */
 {
 	object read_obj, *new_obj;
 
@@ -298,9 +309,8 @@ boolean is_rogue;
 	}
 }
 
-rw_dungeon(fp, rw)
-FILE *fp;
-boolean rw;
+
+static void rw_dungeon(FILE *fp, const boolean rw)			/* only used within this file */
 {
 	short i, j;
 	color_char buf[DCOLS];
@@ -322,11 +332,8 @@ boolean rw;
 	}
 }
 
-rw_id(id_table, fp, n, wr)
-struct id id_table[];
-FILE *fp;
-int n;
-boolean wr;
+
+static void rw_id(struct id id_table[], FILE *fp, const int n, const boolean wr)		/* only used within this file */
 {
 	short i;
 
@@ -345,21 +352,19 @@ boolean wr;
 	}
 }
 
-write_string(s, fp)
-char *s;
-FILE *fp;
+
+static void write_string(char *s, FILE *fp)	/* only used within this file */
 {
 	short n;
 
-	n = strlen(s) + 1;
+	n = (short) strlen(s) + 1;
 	xxxx(s, n);
 	r_write(fp, (char *) &n, sizeof(short));
 	r_write(fp, s, n);
 }
 
-read_string(s, fp)
-char *s;
-FILE *fp;
+
+static void read_string(char *s, FILE *fp)	/* only used within this file */
 {
 	short n;
 
@@ -368,9 +373,8 @@ FILE *fp;
 	xxxx(s, n);
 }
 
-rw_rooms(fp, rw)
-FILE *fp;
-boolean rw;
+
+static void rw_rooms(FILE *fp, const boolean rw)	/* only used within this file */
 {
 	short i;
 
@@ -380,22 +384,16 @@ boolean rw;
 	}
 }
 
-void
-r_read(fp, buf, n)
-FILE *fp;
-char *buf;
-int n;
+
+static void r_read(FILE *fp, char *buf, unsigned int n)	/* only used within this file */
 {
 	if (fread(buf, sizeof(char), n, fp) != n) {
 		clean_up("read() failed, don't know why");
 	}
 }
 
-void
-r_write(fp, buf, n)
-FILE *fp;
-char *buf;
-int n;
+
+static void r_write(FILE *fp, const char *buf, unsigned int n)	/* only used within this file */
 {
 	if (!write_failed) {
 		if (fwrite(buf, sizeof(char), n, fp) != n) {
@@ -406,9 +404,8 @@ int n;
 	}
 }
 
-boolean
-has_been_touched(saved_time, mod_time)
-struct rogue_time *saved_time, *mod_time;
+
+static boolean has_been_touched(rogue_time *saved_time, const rogue_time *mod_time)	/*only used within this file*/
 {
 	if (saved_time->year < mod_time->year) {
 		return(1);

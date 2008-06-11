@@ -225,9 +225,13 @@ extern struct id id_scrolls[];
 
 /* =================== FUNCTIONS ================= */
 
-inventory(pack, mask)
-object *pack;
-unsigned short mask;
+static int pr_com_id(const int ch);	/* only used within this file */
+static int get_com_id(int *index, const short ch);	/* only used within this file */
+static int pr_motion_char(int ch);	/* only used within this file */
+
+
+
+void inventory(object *pack, const unsigned short mask)
 {
 	object *obj;
 	short i = 0, j, maxlen = 0, n;
@@ -258,7 +262,7 @@ unsigned short mask;
 			descs[i][0].b8.color = MAKE_COLOR(WHITE, BLACK);
 			descs[i][0].b8.ch = ' ';
 			descs[i][1].b8.color = letter_color;
-			descs[i][1].b8.ch = obj->ichar;
+			descs[i][1].b8.ch = (char) obj->ichar;
 			if ((obj->what_is & ARMOR) && obj->is_protected) {
 				descs[i][2].b8.color = protect_color;
 				descs[i][2].b8.ch = '}';
@@ -271,7 +275,7 @@ unsigned short mask;
 
 			get_desc(obj, bwdesc);
 			(void) colorize(bwdesc, item_color, descs[i]+4);
-			if ((n = strlen(bwdesc)+4) > maxlen) {
+			if ((n = (short) (strlen(bwdesc)+4) ) > maxlen) {
 				maxlen = n;
 			}
 		i++;
@@ -304,7 +308,8 @@ unsigned short mask;
 	}
 }
 
-id_com()
+
+void id_com(void)
 {
 	int ch = 0;
 	short i, j, k;
@@ -380,12 +385,12 @@ MORE:
 	}
 }
 
-pr_com_id(ch)
-int ch;
+
+static int pr_com_id(const int ch)	/* only used within this file */
 {
 	int i;
 
-	if (!get_com_id(&i, ch)) {
+	if (!get_com_id(&i, (short) ch)) {
 		return(0);
 	}
 	check_message();
@@ -393,9 +398,8 @@ int ch;
 	return(1);
 }
 
-get_com_id(index, ch)
-int *index;
-short ch;
+
+static int get_com_id(int *index, const short ch)		/* only used within this file */
 {
 	short i;
 
@@ -408,8 +412,8 @@ short ch;
 	return(0);
 }
 
-pr_motion_char(ch)
-int ch;
+
+static int pr_motion_char(int ch)	/* only used within this file */
 {
 	if (	(ch == 'J') ||
 			(ch == 'K') ||
@@ -438,7 +442,7 @@ int ch;
 			ch += 32;
 			until[0] = '\0';
 		}
-		(void) get_com_id(&n, ch);
+		(void) get_com_id(&n, (short) ch);
 		sprintf(buf, "run %s %s", com_id_tab[n].com_desc + 8, until);
 		check_message();
 		message(buf, 0);
@@ -448,41 +452,41 @@ int ch;
 	}
 }
 
-mix_colors()
+void mix_colors(void)
 {
 	short i, j, k;
 	char *t;
 
 	for (i = 0; i <= 32; i++) {
-		j = get_rand(0, (POTIONS - 1));
-		k = get_rand(0, (POTIONS - 1));
+		j = (short) get_rand(0, (POTIONS - 1));
+		k = (short) get_rand(0, (POTIONS - 1));
 		t = id_potions[j].title;
 		id_potions[j].title = id_potions[k].title;
 		id_potions[k].title = t;
 	}
 }
 
-make_scroll_titles()
+
+void make_scroll_titles(void)
 {
 	short i, j, n;
 	short sylls, s;
 
 	for (i = 0; i < SCROLS; i++) {
-		sylls = get_rand(2, 5);
+		sylls = (short) get_rand(2, 5);
 		(void) strcpy(id_scrolls[i].title, "'");
 
 		for (j = 0; j < sylls; j++) {
-			s = get_rand(1, (MAXSYLLABLES-1));
+			s = (short) get_rand(1, (MAXSYLLABLES-1));
 			(void) strcat(id_scrolls[i].title, syllables[s]);
 		}
-		n = strlen(id_scrolls[i].title);
+		n = (short) strlen(id_scrolls[i].title);
 		(void) strcpy(id_scrolls[i].title+(n-1), "' ");
 	}
 }
 
-get_desc(obj, desc)
-object *obj;
-char *desc;
+
+void get_desc(object *obj, char *desc)
 {
 	char *item_name;
 	struct id *id_table;
@@ -626,7 +630,7 @@ ID:		switch(obj->what_is) {
 ANA:
 	if (!strncmp(desc, "a ", 2)) {
 		if (is_vowel(desc[2])) {
-			for (i = strlen(desc) + 1; i > 1; i--) {
+			for (i = (short) strlen(desc) + 1; i > 1; i--) {
 				desc[i] = desc[i-1];
 			}
 			desc[1] = 'n';
@@ -643,7 +647,8 @@ ANA:
 	}
 }
 
-get_wand_and_ring_materials()
+
+void get_wand_and_ring_materials(void)
 {
 	short i, j;
 	boolean used[WAND_MATERIALS];
@@ -653,26 +658,26 @@ get_wand_and_ring_materials()
 	}
 	for (i = 0; i < WANDS; i++) {
 		do {
-			j = get_rand(0, WAND_MATERIALS-1);
+			j = (short) get_rand(0, WAND_MATERIALS-1);
 		} while (used[j]);
 		used[j] = 1;
 		(void) strcpy(id_wands[i].title, wand_materials[j]);
-		is_wood[i] = (j > MAX_METAL);
+		is_wood[i] = (boolean) (j > MAX_METAL);
 	}
 	for (i = 0; i < GEMS; i++) {
 		used[i] = 0;
 	}
 	for (i = 0; i < RINGS; i++) {
 		do {
-			j = get_rand(0, GEMS-1);
+			j = (short) get_rand(0, GEMS-1);
 		} while (used[j]);
 		used[j] = 1;
 		(void) strcpy(id_rings[i].title, gems[j]);
 	}
 }
 
-single_inv(ichar)
-short ichar;
+
+void single_inv(const short ichar)
 {
 	short ch;
 	char desc[DCOLS];
@@ -687,7 +692,7 @@ short ichar;
 		message("no such item.", 0);
 		return;
 	}
-	desc[0] = ch;
+	desc[0] = (char) ch;
 	desc[1] = ((obj->what_is & ARMOR) && obj->is_protected) ? '}' : ')';
 	desc[2] = ' ';
 	desc[3] = 0;
@@ -695,9 +700,8 @@ short ichar;
 	message(desc, 0);
 }
 
-struct id *
-get_id_table(obj)
-object *obj;
+
+struct id * get_id_table(const object *obj)
 {
 	switch(obj->what_is) {
 	case SCROL:
@@ -716,8 +720,8 @@ object *obj;
 	return((struct id *) 0);
 }
 
-inv_armor_weapon(is_weapon)
-boolean is_weapon;
+
+void inv_armor_weapon(const boolean is_weapon)
 {
 	if (is_weapon) {
 		if (rogue.weapon) {
@@ -734,7 +738,8 @@ boolean is_weapon;
 	}
 }
 
-id_type()
+
+void id_type(void)
 {
 	char *id;
 	int ch;

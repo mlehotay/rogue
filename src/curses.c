@@ -133,19 +133,23 @@ static unsigned char videomode, videopage;
 
 /* ================= PRIVATE PROTOTYPES ================= */
 
-static clear_buffers();
-static cls();
-/* static put_char_at(register int row, register int col, char ch); */
-static put_color_char_at(register int row, register int col, COLORBUF cb);
-static put_cursor(register int row, register int col);
-static char translate_keypad(int scancode);
-static wrefresh(WINDOW *scr);
+static void addstr_in_color(char *str, const byte color);	/* only used within this file */
+static void addcstr(color_char *cstr);		/* only used within this file */
+static char translate_keypad(int scancode);	/* only used within this file */
+/* static void put_char_at(int row, int col, char ch)	only used within this file*/
+static void put_color_char_at(int row, int col, COLORBUF cb);	/* only used within this file */
+static void put_cursor(int row, int col);	/* only used within this file */
+static void clear_buffers(void);			/* only used within this file */
+static void cls(void);						/* only uwed within this file */
+static void wrefresh(WINDOW *scr);			/* only used within this file */
+
 
 /* ================== PUBLIC FUNCTIONS ================== */
 
 /*  Returns a keystroke, translated into a Rogue command.
  */
-rgetchar()
+
+char rgetchar(void)
 {
     char ch;
 #ifdef _MSC_VER
@@ -154,7 +158,7 @@ rgetchar()
     
     put_cursor(curscr->_cury, curscr->_curx);
 #else
-    register scancode;
+    int scancode;
     regs_t regs;
 #endif
 
@@ -240,7 +244,8 @@ rgetchar()
 
 /*  Initializes the screen and pulls in the DPMI mode and page in use
  */
-initscr()
+
+void initscr(void)
 {
 #ifdef _MSC_VER
     CONSOLE_SCREEN_BUFFER_INFO csbi;
@@ -266,8 +271,7 @@ initscr()
 }
 
 
-move(row, col)
-short row, col;
+void move(const short row, const short col)
 {
 	curscr->_cury = row;
 	curscr->_curx = col;
@@ -282,7 +286,7 @@ short row, col;
  * color (*addstr_in_color) or as a fully colorized string (*addcstr).
  */
 
-addstr(char *str)
+void addstr(char *str)
 {
 	while (*str) {
 		addch((int) *str++);
@@ -290,16 +294,14 @@ addstr(char *str)
 }
 
 
-mvaddstr(row, col, str)
-short row, col;
-char *str;
+void mvaddstr(const short row, const short col, char *str)
 {
 	move(row, col);
 	addstr(str);
 }
 
 
-addstr_in_color(char *str, byte color)
+static void addstr_in_color(char *str, const byte color)	/* only used within this file */
 {
 	color_char cc;
 	while (*str) {
@@ -311,14 +313,14 @@ addstr_in_color(char *str, byte color)
 }
 
 
-mvaddstr_in_color(short row, short col, char *str, byte color)
+void mvaddstr_in_color(const short row, const short col, char *str, const byte color)
 {
 	move(row, col);
 	addstr_in_color(str, color);
 }
 
 
-addcstr(color_char *cstr)
+static void addcstr(color_char *cstr)	/* only used within this file */
 {
 	while ((*cstr).b16 != 0) {
 		addcch(*cstr++);
@@ -326,7 +328,7 @@ addcstr(color_char *cstr)
 }
 
 
-mvaddcstr(short row, short col, color_char *cstr)
+void mvaddcstr(const short row, const short col, color_char *cstr)
 {
 	move(row, col);
 	addcstr(cstr);
@@ -339,11 +341,11 @@ mvaddcstr(short row, short col, color_char *cstr)
  * B&W (addch, mvaddch) or color (addcch, mvaddcch).
  */
 
-addch(register int ch)
+void addch(const int ch)
 {
 	color_char cc;
 
-	cc.b8.ch = ch;
+	cc.b8.ch = (char) ch;
 	if (buf_stand_out) {
 		cc.b8.color = MAKE_COLOR(BRIGHT_WHITE, BLACK);
 	} else {
@@ -353,13 +355,15 @@ addch(register int ch)
 	addcch(cc);
 }
 
-mvaddch(short row, short col, int ch)
+
+void mvaddch(const short row, const short col, const int ch)
 {
 	move(row, col);
 	addch(ch);
 }
 
-addcch(color_char cc)
+
+void addcch(const color_char cc)
 {
 	short row, col;
 
@@ -371,7 +375,8 @@ addcch(color_char cc)
 	screen_dirty = 1;
 }
 
-mvaddcch(short row, short col, color_char cc)
+
+void mvaddcch(const short row, const short col, const color_char cc)
 {
 	move(row, col);
 	addcch(cc);
@@ -382,7 +387,7 @@ mvaddcch(short row, short col, color_char cc)
 /* Turns a dull B&W string into a vibrant color one. :-)
  */
 
-colorize(char *str, byte color, color_char *cstr)
+void colorize(char *str, const byte color, color_char *cstr)
 {
 	while (*str != '\0') {
 		(*cstr).b8.color = color;
@@ -399,9 +404,9 @@ colorize(char *str, byte color, color_char *cstr)
  * of the current screen (refresh)
  */
 
-refresh()
+void refresh(void)
 {
-	register i, j, line;
+	int i, j, line;
 	short old_row, old_col, first_row;
 
 	if (screen_dirty) {
@@ -427,7 +432,9 @@ refresh()
 	}
 }
 
-redraw() {
+
+void redraw(void) 
+{
 	wrefresh(curscr);
 }
 
@@ -435,14 +442,14 @@ redraw() {
 
 /* Returns the character currently at the specified current position
  */
-mvinch(row, col)
-short row, col;
+int mvinch(const short row, const short col)
 {
 	move(row, col);
 	return((int) (buffer[row][col].b8.ch));
 }
 
-color_char mvincch(short row, short col)
+
+color_char mvincch(const short row, const short col)
 {
 	move(row, col);
 	return (buffer[row][col]);
@@ -453,7 +460,7 @@ color_char mvincch(short row, short col)
 /* Clears the whole screan (clear) or to the current EOL (clrtoeol)
  */
 
-clear()
+void clear(void)
 {
 	cls();
 	fflush(stdout);
@@ -462,7 +469,8 @@ clear()
 	clear_buffers();
 }
 
-clrtoeol()
+
+void clrtoeol(void)
 {
 	short row, col;
 
@@ -479,12 +487,12 @@ clrtoeol()
 /*  Turns bold characters on and off.  Legacy functions.
  */
 
-standout()
+void standout(void)
 {
 	buf_stand_out = 1;
 }
 
-standend()
+void standend(void)
 {
 	buf_stand_out = 0;
 }
@@ -496,8 +504,7 @@ standend()
  *  Specify cset in order: horiz, vert, and 4 corners: ul, ur, ll, lr
  */
 
-void
-draw_box(color_char cset[6], int ulrow, int ulcol, int height, int width)
+void draw_box(const color_char cset[6], const short ulrow, const short ulcol, const short height, const short width)
 {
 	short i;
 	const short toprow = ulrow;
@@ -534,19 +541,22 @@ draw_box(color_char cset[6], int ulrow, int ulcol, int height, int width)
 /*   Stubs called during game initialization and exit.
  */
 
-endwin()
+void endwin(void)
 {
 }
 
-crmode()
+
+void crmode(void)
 {
 }
 
-noecho()
+
+void noecho(void)
 {
 }
 
-nonl()
+
+void nonl(void)
 {
 }
 
@@ -563,7 +573,7 @@ nonl()
  *		  ulcol: upper-left column of the subwindow
  */
 #if 0
-overlay(color_char cca[][], int rows, int cols, int ulrow, int ulcol)
+void overlay(color_char cca[][], int rows, int cols, int ulrow, int ulcol)
 {
 	int r, c, ar, ar0, ac;
 	int lrrow, lrcol;
@@ -602,7 +612,8 @@ overlay(color_char cca[][], int rows, int cols, int ulrow, int ulcol)
 /* Translates a numeric keypad press into the equivalent Rogue command.
  */
 #ifndef _MSC_VER
-static char translate_keypad(int scancode) {
+static char translate_keypad(int scancode)	/* only used within this file */
+{
     const char keys[] = "yku-h5l+bjn0.";
     const char control[] = "\031\013\025-\0105\014+\002\012\0160.";
 	regs_t regs;
@@ -625,13 +636,14 @@ static char translate_keypad(int scancode) {
  */
 
 #if 0
-static put_char_at(register int row, register int col, char ch)
+static void put_char_at(int row, int col, char ch)	/* only used within this file*/
 {
 	put_color_char_at(row, col, (COLORBUF) MAKE_COLOR_CHAR(WHITE, BLACK, ch));
 }
 #endif
 
-static put_color_char_at(register int row, register int col, COLORBUF cb)
+
+static void put_color_char_at(int row, int col, COLORBUF cb)	/* only used within this file */
 {
 #ifdef _MSC_VER
     COORD coord;
@@ -644,8 +656,8 @@ static put_color_char_at(register int row, register int col, COLORBUF cb)
 #endif
     
 #ifdef _MSC_VER
-    coord.X = col;
-    coord.Y = row;
+    coord.X = (short) col;
+    coord.Y = (short) row;
     attrib = cb.b8.color;
 
     WriteConsoleOutputCharacter(hStdOut, &cb.b8.ch, 1, coord, &n);
@@ -667,13 +679,14 @@ static put_color_char_at(register int row, register int col, COLORBUF cb)
 
 /*   Moves the cursor to a coordinate on the screen.
  */
-static put_cursor(register int row, register int col)
+
+static void put_cursor(int row, int col)	/* only used within this file */
 {
 #ifdef _MSC_VER
     COORD coord;
 
-    coord.X = col;
-    coord.Y = row;
+    coord.X = (SHORT) col;
+    coord.Y = (SHORT) row;
 
     SetConsoleCursorPosition(hStdOut, coord);
 #else
@@ -691,9 +704,10 @@ static put_cursor(register int row, register int col)
 
 /*  Clears the internal screen buffers
  */
-static clear_buffers()
+
+static void clear_buffers(void)		/* only used within this file */
 {
-	register i, j;
+	int i, j;
 
 	screen_dirty = 0;
 
@@ -711,7 +725,7 @@ static clear_buffers()
 /* Clears the physical screen
  */
 
-static cls()
+static void cls(void)		/* only uwed within this file */
 {
 #ifdef _MSC_VER
     COORD coord;
@@ -739,7 +753,7 @@ static cls()
 /*  Redraws the complete game screen.
  */
 
-static wrefresh(WINDOW *scr)
+static void wrefresh(WINDOW *scr)	/* only used within this file */
 {
 	short i, col;
 

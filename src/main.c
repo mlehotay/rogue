@@ -49,9 +49,8 @@
 extern short party_room;
 extern char welcome[];
 
-main(argc, argv)
-int argc;
-char *argv[];
+
+void main(int argc, char *argv[])
 {
     boolean welcomed = 0;
 

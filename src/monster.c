@@ -118,14 +118,25 @@ extern short blind, halluc, haste_self;
 extern boolean detect_monster, see_invisible, r_see_invisible, use_color;
 extern short stealthy;
 
-put_mons()
+
+static int mtry(object *monster, const short row, const short col);	/*only used within this file*/
+static short rogue_is_around(const short row, const short col);	/*only used within this file*/
+static void put_m_at(const short row, const short col, object *monster); /*only used within this file*/
+static void aim_monster(object *monster);	/*only used within this file*/
+static int move_confused(object *monster);	/*only used within this file*/
+static int flit(object *monster);			/*only used within this file*/
+static int no_room_for_monster(const int rn);		/*only used within this file*/
+
+
+
+void put_mons(void)
 {
 	short i;
 	short n;
 	object *monster;
 	short row, col;
 
-	n = get_rand(4, 6);
+	n = (short) get_rand(4, 6);
 
 	for (i = 0; i < n; i++) {
 		monster = gr_monster((object *) 0, 0);
@@ -137,10 +148,8 @@ put_mons()
 	}
 }
 
-object *
-gr_monster(monster, mn)
-register object *monster;
-register mn;
+
+object * gr_monster(object *monster, int mn)
 {
 	if (!monster) {
 		monster = alloc_object();
@@ -164,16 +173,17 @@ register mn;
 	return(monster);
 }
 
-mv_mons()
+
+void mv_mons(void)
 {
-	register object *monster, *next_monster, *test_mons;
+	object *monster, *next_monster, *test_mons;
 	boolean flew;
 
 	if (haste_self % 2) {
 		return;
 	}
 
-	monster = level_monsters.next_monster, *test_mons;
+	monster = level_monsters.next_monster, *test_mons;	/* Comma seperates statements but what does '*test_mons;" do? */
 
 	while (monster) {
 		next_monster = monster->next_monster;
@@ -226,8 +236,8 @@ NM:		/*
 	}
 }
 
-party_monsters(rn, n)
-int rn, n;
+
+void party_monsters(const int rn, int n)
 {
 	short i, j;
 	short row, col;
@@ -244,9 +254,9 @@ int rn, n;
 			break;
 		}
 		for (j = found = 0; ((!found) && (j < 250)); j++) {
-			row = get_rand(rooms[rn].top_row+1,
+			row = (short) get_rand(rooms[rn].top_row+1,
 				rooms[rn].bottom_row-1);
-			col = get_rand(rooms[rn].left_col+1,
+			col = (short) get_rand(rooms[rn].left_col+1,
 				rooms[rn].right_col-1);
 			if ((!(dungeon[row][col] & MONSTER)) &&
 				(dungeon[row][col] & (FLOOR | TUNNEL))) {
@@ -270,9 +280,9 @@ int rn, n;
 /* Returns the monster's character.  Monsters are always white-on-black
  * except for imitators.
  */
-color_char gmc_row_col(register row, register col)
+color_char gmc_row_col(const short row, const short col)
 {
-	register object *monster;
+	object *monster;
 	color_char cc;
 
 	if (monster = object_at(&level_monsters, row, col)) {
@@ -286,7 +296,7 @@ color_char gmc_row_col(register row, register col)
 }
 
 
-color_char gmc(object *monster)
+color_char gmc(const object *monster)
 {
 	color_char cc;
 
@@ -304,14 +314,12 @@ color_char gmc(object *monster)
 
 	/* your garden variety monster */
 	cc.b8.color = MAKE_COLOR(WHITE,BLACK);
-	cc.b8.ch = monster->m_char;
+	cc.b8.ch = (char) monster->m_char;
 	return(cc);
 }
 
 
-mv_1_monster(monster, row, col)
-register object *monster;
-short row, col;
+void mv_1_monster(object *monster, short row, short col)
 {
 	short i, n;
 	boolean tried[6];
@@ -390,7 +398,7 @@ short row, col;
 	for (i = 0; i <= 5; i++) tried[i] = 0;
 
 	for (i = 0; i < 6; i++) {
-NEXT_TRY:	n = get_rand(0, 5);
+NEXT_TRY:	n = (short) get_rand(0, 5);
 		switch(n) {
 		case 0:
 			if (!tried[n] && mtry(monster, row, monster->col-1)) {
@@ -434,8 +442,8 @@ O:
 		if (++(monster->o) > 4) {
 			if ((monster->trow == NO_ROOM) &&
 					(!mon_sees(monster, rogue.row, rogue.col))) {
-				monster->trow = get_rand(1, (DROWS - 2));
-				monster->tcol = get_rand(0, (DCOLS - 1));
+				monster->trow = (short) get_rand(1, (DROWS - 2));
+				monster->tcol = (short) get_rand(0, (DCOLS - 1));
 			} else {
 				monster->trow = NO_ROOM;
 				monster->o = 0;
@@ -448,9 +456,8 @@ O:
 	}
 }
 
-mtry(monster, row, col)
-register object *monster;
-register short row, col;
+
+static int mtry(object *monster, const short row, const short col)	/*only used within this file*/
 {
 	if (mon_can_go(monster, row, col)) {
 		move_mon_to(monster, row, col);
@@ -459,12 +466,11 @@ register short row, col;
 	return(0);
 }
 
-move_mon_to(monster, row, col)
-register object *monster;
-register short row, col;
+
+void move_mon_to(object *monster, const short row, const short col)
 {
 	short c;
-	register mrow, mcol;
+	short mrow, mcol;
 
 	mrow = monster->row;
 	mcol = monster->col;
@@ -472,7 +478,7 @@ register short row, col;
 	dungeon[mrow][mcol] &= ~MONSTER;
 	dungeon[row][col] |= MONSTER;
 
-	c = mvinch(mrow, mcol);
+	c = (short) mvinch(mrow, mcol);
 
 	if ((c >= 'A') && (c <= 'Z')) {
 		if (!detect_monster) {
@@ -509,9 +515,8 @@ register short row, col;
 	}
 }
 
-mon_can_go(monster, row, col)
-register object *monster;
-register short row, col;
+
+short mon_can_go(const object *monster, const short row, const short col)
 {
 	object *obj;
 	short dr, dc;
@@ -550,18 +555,16 @@ register short row, col;
 	return(1);
 }
 
-wake_up(monster)
-object *monster;
+
+void wake_up(object *monster)
 {
 	if (!(monster->m_flags & NAPPING)) {
 		monster->m_flags &= (~(ASLEEP | IMITATES | WAKENS));
 	}
 }
 
-wake_room(rn, entering, row, col)
-short rn;
-boolean entering;
-short row, col;
+
+void wake_room(const short rn, const boolean entering, const short row, const short col)
 {
 	object *monster;
 	short wake_percent;
@@ -575,7 +578,7 @@ short row, col;
 	monster = level_monsters.next_monster;
 
 	while (monster) {
-		in_room = (rn == get_room_number(monster->row, monster->col));
+		in_room = (boolean) (rn == get_room_number(monster->row, monster->col));
 		if (in_room) {
 			if (entering) {
 				monster->trow = NO_ROOM;
@@ -594,9 +597,8 @@ short row, col;
 	}
 }
 
-char *
-mon_name(monster)
-object *monster;
+
+char * mon_name(const object *monster)
 {
 	short ch;
 
@@ -605,15 +607,15 @@ object *monster;
 		return("something");
 	}
 	if (halluc) {
-		ch = get_rand('A', 'Z') - 'A';
+		ch = (short) (get_rand('A', 'Z') - 'A');
 		return(m_names[ch]);
 	}
 	ch = monster->m_char - 'A';
 	return(m_names[ch]);
 }
 
-rogue_is_around(row, col)
-register row, col;
+
+static short rogue_is_around(const short row, const short col)	/*only used within this file*/
 {
 	short rdif, cdif, retval;
 
@@ -624,7 +626,8 @@ register row, col;
 	return(retval);
 }
 
-wanderer()
+
+void wanderer(void)
 {
 	object *monster;
 	short row, col, i;
@@ -654,7 +657,8 @@ wanderer()
 	}
 }
 
-show_monsters()
+
+void show_monsters(void)
 {
 	object *monster;
 
@@ -675,7 +679,8 @@ show_monsters()
 	}
 }
 
-create_monster()
+
+void create_monster(void)
 {
 	short row, col;
 	short i;
@@ -710,9 +715,8 @@ create_monster()
 	}
 }
 
-put_m_at(row, col, monster)
-short row, col;
-object *monster;
+
+static void put_m_at(const short row, const short col, object *monster)		/*only used within this file*/
 {
 	monster->row = row;
 	monster->col = col;
@@ -722,13 +726,13 @@ object *monster;
 	aim_monster(monster);
 }
 
-aim_monster(monster)
-object *monster;
+
+static void aim_monster(object *monster)	/*only used within this file*/
 {
 	short i, rn, d, r;
 
 	rn = get_room_number(monster->row, monster->col);
-	r = get_rand(0, 12);
+	r = (short) get_rand(0, 12);
 
 	for (i = 0; i < 4; i++) {
 		d = (r + i) % 4;
@@ -740,10 +744,9 @@ object *monster;
 	}
 }
 
-rogue_can_see(row, col)
-register row, col;
+int rogue_can_see(const short row, const short col)
 {
-	register retval;
+	int retval;
 
 	retval = !blind &&
 			(((get_room_number(row, col) == cur_room) &&
@@ -753,8 +756,8 @@ register row, col;
 	return(retval);
 }
 
-move_confused(monster)
-object *monster;
+
+static int move_confused(object *monster)	/*only used within this file*/
 {
 	short i, row, col;
 
@@ -783,8 +786,8 @@ object *monster;
 	return(0);
 }
 
-flit(monster)
-object *monster;
+
+static int flit(object *monster)	/*only used within this file*/
 {
 	short i, row, col;
 
@@ -809,8 +812,8 @@ object *monster;
 	return(1);
 }
 
-no_room_for_monster(rn)
-int rn;
+
+static int no_room_for_monster(const int rn)	/*only used within this file*/
 {
 	short i, j;
 
@@ -824,7 +827,8 @@ int rn;
 	return(1);
 }
 
-aggravate()
+
+void aggravate(void)
 {
 	object *monster;
 
@@ -842,9 +846,13 @@ aggravate()
 	}
 }
 
-boolean
+/* OLD_CODE - row, col implicitly defined
+boolean 
 mon_sees(monster, row, col)
 object *monster;
+*/
+
+boolean mon_sees(const object *monster, const short row, const short col)
 {
 	short rn, rdif, cdif, retval;
 
@@ -859,10 +867,11 @@ object *monster;
 	cdif = col - monster->col;
 
 	retval = (rdif >= -1) && (rdif <= 1) && (cdif >= -1) && (cdif <= 1);
-	return(retval);
+	return( (boolean) retval);
 }
 
-mv_aquatars()
+
+void mv_aquatars(void)
 {
 	object *monster;
 

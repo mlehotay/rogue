@@ -56,8 +56,19 @@ extern boolean sustain_strength, maintain_armor;
 extern char *you_can_move_again;
 extern boolean enable_hypo;
 
-special_hit(monster)
-object *monster;
+
+static void freeze(object *monster);				/*only used within this file*/
+static void steal_gold(object *monster);			/*only used within this file*/
+static void steal_item(object *monster);			/*only used within this file*/
+static void disappear(object *monster);				/*only used within this file*/
+static int try_to_cough(const short row, const short col, object *obj);	/*only used within this file*/
+static int gold_at(const short row, const short col);			/*only used within this file*/
+static void sting(const object *monster);					/*only used within this file*/
+static void drop_level(void);						/*only used within this file*/
+static short get_dir(const short srow, const short scol, const short drow, const short dcol);	/*only used within this file*/
+
+
+void special_hit(object *monster)
 {
 	if ((monster->m_flags & CONFUSED) && rand_percent(66)) {
 		return;
@@ -87,8 +98,8 @@ object *monster;
 	}
 }
 
-rust(monster)
-object *monster;
+
+void rust(object *monster)
 {
 	if ((!rogue.armor) || (get_armor_class(rogue.armor) <= 1) ||
 		(rogue.armor->which_kind == LEATHER)) {
@@ -106,8 +117,8 @@ object *monster;
 	}
 }
 
-freeze(monster)
-object *monster;
+
+static void freeze(object *monster)	/*only used within this file*/
 {
 	short freeze_percent = 99;
 	short i, n;
@@ -124,7 +135,7 @@ object *monster;
 		monster->m_flags |= FREEZING_ROGUE;
 		message("you are frozen", 1);
 
-		n = get_rand(4, 8);
+		n = (short) get_rand(4, 8);
 		for (i = 0; i < n; i++) {
 			mv_mons();
 		}
@@ -140,8 +151,8 @@ object *monster;
 	}
 }
 
-steal_gold(monster)
-object *monster;
+
+static void steal_gold(object *monster)	/*only used within this file*/
 {
 	int amount;
 
@@ -160,8 +171,8 @@ object *monster;
 	disappear(monster);
 }
 
-steal_item(monster)
-object *monster;
+
+static void steal_item(object *monster)		/*only used within this file*/
 {
 	object *obj;
 	short i, n, t;
@@ -186,7 +197,7 @@ object *monster;
 	if (!has_something) {
 		goto DSPR;
 	}
-	n = get_rand(0, MAX_PACK_COUNT);
+	n = (short) get_rand(0, MAX_PACK_COUNT);
 	obj = rogue.pack.next_object;
 
 	for (i = 0; i <= n; i++) {
@@ -214,8 +225,8 @@ DSPR:
 	disappear(monster);
 }
 
-disappear(monster)
-object *monster;
+
+static void disappear(object *monster)	/*only used within this file*/
 {
 	short row, col;
 
@@ -231,8 +242,8 @@ object *monster;
 	mon_disappeared = 1;
 }
 
-cough_up(monster)
-object *monster;
+
+void cough_up(const object *monster)
 {
 	object *obj;
 	short row, col, i, n;
@@ -244,7 +255,7 @@ object *monster;
 	if (monster->m_flags & STEALS_GOLD) {
 		obj = alloc_object();
 		obj->what_is = GOLD;
-		obj->quantity = get_rand((cur_level * 15), (cur_level * 30));
+		obj->quantity = (short) get_rand((cur_level * 15), (cur_level * 30));
 	} else {
 		if (!rand_percent((int) monster->drop_percent)) {
 			return;
@@ -278,9 +289,8 @@ object *monster;
 
 /* NS: Corrected this (I hope) in the event the object rolls under a monster.
  */
-try_to_cough(row, col, obj)
-short row, col;
-object *obj;
+
+static int try_to_cough(const short row, const short col, object *obj)	/*only used within this file*/
 {
 	color_char cc;
 	object *monster;
@@ -291,7 +301,7 @@ object *obj;
 	if ((!(dungeon[row][col] & (OBJECT | STAIRS | TRAP))) &&
 				(dungeon[row][col] & (TUNNEL | FLOOR | DOOR))) {
 		place_at(obj, row, col);
-		cc = get_dungeon_char(row,col);
+		cc = get_dungeon_char(row, col);
 		if ((row != rogue.row) || (col != rogue.col)) {
 			if (!(dungeon[row][col] & MONSTER)) {
 				mvaddcch(row, col, cc);
@@ -306,8 +316,8 @@ object *obj;
 	return(0);
 }
 
-seek_gold(monster)
-object *monster;
+
+int seek_gold(object *monster)
 {
 	short i, j, rn, s;
 
@@ -338,8 +348,8 @@ object *monster;
 	return(0);
 }
 
-gold_at(row, col)
-short row, col;
+
+static int gold_at(const short row, const short col)	/*only used within this file*/
 {
 	if (dungeon[row][col] & OBJECT) {
 		object *obj;
@@ -352,14 +362,14 @@ short row, col;
 	return(0);
 }
 
-check_gold_seeker(monster)
-object *monster;
+
+void check_gold_seeker(object *monster)
 {
 	monster->m_flags &= (~SEEKS_GOLD);
 }
 
-check_imitator(monster)
-object *monster;
+
+int check_imitator(object *monster)
 {
 	char msg[80];
 
@@ -377,11 +387,12 @@ object *monster;
 	return(0);
 }
 
-imitating(row, col)
-register short row, col;
+
+int imitating(const short row, const short col)
 {
 	if (dungeon[row][col] & MONSTER) {
-		object *object_at(), *monster;
+/*		object *object_at(), *monster;	*/
+		object *monster;
 
 		if (monster = object_at(&level_monsters, row, col)) {
 			if (monster->m_flags & IMITATES) {
@@ -392,8 +403,8 @@ register short row, col;
 	return(0);
 }
 
-sting(monster)
-object *monster;
+
+static void sting(const object *monster)	/*only used within this file*/
 {
 	short sting_chance = 35;
 	char msg[80];
@@ -415,7 +426,8 @@ object *monster;
 	}
 }
 
-drop_level()
+
+static void drop_level(void)	/*only used within this file*/
 {
 	int hp;
 
@@ -434,14 +446,15 @@ drop_level()
 	add_exp(1, 0);
 }
 
-drain_life()
+
+void drain_life(void)
 {
 	short n;
 
 	if (rand_percent(60) || (rogue.hp_max <= 30) || (rogue.hp_current < 10)) {
 		return;
 	}
-	n = get_rand(1, 3);		/* 1 Hp, 2 Str, 3 both */
+	n = (short) get_rand(1, 3);		/* 1 Hp, 2 Str, 3 both */
 
 	if ((n != 2) || (!sustain_strength)) {
 		message("you feel weaker", 0);
@@ -462,8 +475,8 @@ drain_life()
 	print_stats((STAT_STRENGTH | STAT_HP));
 }
 
-m_confuse(monster)
-object *monster;
+
+int m_confuse(object *monster)
 {
 	char msg[80];
 
@@ -490,8 +503,8 @@ object *monster;
  */
 #define ABS(x)		(((x) < 0) ? -(x) : (x))
 
-flame_broil(monster)
-object *monster;
+
+int flame_broil(object *monster)
 {
 	short row, col, dir;
 
@@ -501,8 +514,8 @@ object *monster;
 	if ((!mon_sees(monster, rogue.row, rogue.col)) || coin_toss()) {
 		return(0);
 	}
-	row = ABS(rogue.row - monster->row);
-	col = ABS(rogue.col - monster->col);
+	row = (short) ABS(rogue.row - monster->row);
+	col = (short) ABS(rogue.col - monster->col);
 	if (((row != 0) && (col != 0) && (row != col)) ||
 			(row > 7) || (col > 7) ||
 			((row <= 1) && (col <= 1)) ) {
@@ -514,15 +527,15 @@ object *monster;
 	 */
 	dir = get_dir(monster->row, monster->col, rogue.row, rogue.col);
 	if (rand_percent(40)) {
-		dir = get_rand(1, DIRS);
+		dir = (short) get_rand(1, DIRS);
 	}
 	bounce(FIRE, dir, monster->row, monster->col, 0);
 
 	return(1);
 }
 
-get_dir(srow, scol, drow, dcol)
-short srow, scol, drow, dcol;
+
+static short get_dir(const short srow, const short scol, const short drow, const short dcol)	/*only used within this file*/
 {
 	if (srow == drow) {
 		if (scol < dcol) {

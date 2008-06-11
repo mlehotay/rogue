@@ -57,8 +57,14 @@ extern short e_rings, regeneration, auto_search;
 extern char hunger_str[];
 extern boolean being_held, interrupted, r_teleport, passgo;
 
-one_move_rogue(dirch, pickup)
-short dirch, pickup;
+
+static int next_to_something(const short drow, const short dcol);	/* only used within this file */
+static short gr_dir(void);	/* only used within this file */
+static void heal(void);		/* only used within this file */
+static void turn_passage(const short dir, const boolean fast);	/* only used within this file */
+
+
+short one_move_rogue(short dirch, const short pickup)
 {
 	short row, col;
 	object *obj;
@@ -147,9 +153,9 @@ MOVE_ON:
 			get_desc(obj, desc+11);
 			goto NOT_IN_PACK;
 		}
-		n = strlen(desc);
+		n = (short) strlen(desc);
 		desc[n] = '(';
-		desc[n+1] = obj->ichar;
+		desc[n+1] = (char) obj->ichar;
 		desc[n+2] = ')';
 		desc[n+3] = 0;
 NOT_IN_PACK:
@@ -170,8 +176,8 @@ MVED:	if (reg_move()) {			/* fainted from hunger */
 	return((confused ? STOPPED_ON_SOMETHING : MOVED));
 }
 
-multiple_move_rogue(dirch)
-short dirch;
+
+void multiple_move_rogue(const short dirch)
 {
 	short row, col;
 	short m;
@@ -217,8 +223,8 @@ short dirch;
 	}
 }
 
-is_passable(row, col)
-register row, col;
+
+int is_passable(const short row, const short col)
 {
 	if ((row < MIN_ROW) || (row > (DROWS - 2)) || (col < 0) ||
 		(col > (DCOLS-1))) {
@@ -230,8 +236,8 @@ register row, col;
 	return(dungeon[row][col] & (FLOOR | TUNNEL | DOOR | STAIRS | TRAP));
 }
 
-next_to_something(drow, dcol)
-register drow, dcol;
+
+static int next_to_something(const short drow, const short dcol)	/* only used within this file */
 {
 	short i, j, i_end, j_end, row, col;
 	short pass_count = 0;
@@ -291,7 +297,8 @@ register drow, dcol;
 	return(0);
 }
 
-can_move(row1, col1, row2, col2)
+
+int can_move(const short row1, const short col1, const short row2, const short col2)
 {
 	if (!is_passable(row2, col2)) {
 		return(0);
@@ -307,7 +314,8 @@ can_move(row1, col1, row2, col2)
 	return(1);
 }
 
-move_onto()
+
+void move_onto(void)
 {
 	short ch, d;
 	boolean first_miss = 1;
@@ -325,10 +333,8 @@ move_onto()
 	}
 }
 
-boolean
-is_direction(c, d)
-short c;
-short *d;
+
+boolean is_direction(const short c, short *d)
 {
 	switch(c) {
 	case 'h': case 'H': case '\010':
@@ -363,11 +369,10 @@ short *d;
 	return(1);
 }
 
-boolean
-check_hunger(msg_only)
-boolean msg_only;
+
+boolean check_hunger(const boolean msg_only)
 {
-	register short i, n;
+	short i, n;
 	boolean fainted = 0;
 
 	if (rogue.moves_left == HUNGRY) {
@@ -386,7 +391,7 @@ boolean msg_only;
 			message(hunger_str, 1);
 			print_stats(STAT_HUNGER);
 		}
-		n = get_rand(0, (FAINT - rogue.moves_left));
+		n = (short) get_rand(0, (FAINT - rogue.moves_left));
 		if (n > 0) {
 			fainted = 1;
 			if (rand_percent(40)) {
@@ -450,8 +455,8 @@ boolean msg_only;
 	return(fainted);
 }
 
-boolean
-reg_move()
+
+boolean reg_move(void)
 {
 	boolean fainted;
 
@@ -502,12 +507,19 @@ reg_move()
 	}
 	heal();
 	if (auto_search > 0) {
-		search(auto_search, auto_search);
+
+		/*auto_search is only used in boolean part of if statement in
+		search() function, therefore hard coding it to 1 is OK given
+		the "if (auto_search > 0)" above
+		search(auto_search, auto_search);	fix compiler warning*/
+
+		search(auto_search, 1);
 	}
 	return(fainted);
 }
 
-rest(count)
+
+void rest(const int count)
 {
 	int i;
 
@@ -521,11 +533,12 @@ rest(count)
 	}
 }
 
-gr_dir()
+
+static short gr_dir(void)	/* only used within this file */
 {
 	short d;
 
-	d = get_rand(1, 8);
+	d = (short) get_rand(1, 8);
 
 	switch(d) {
 		case 1:
@@ -556,7 +569,8 @@ gr_dir()
 	return(d);
 }
 
-heal()
+
+static void heal(void)	/* only used within this file */
 {
 	static short heal_exp = -1, n, c = 0;
 	static boolean alt;
@@ -620,9 +634,8 @@ heal()
 	}
 }
 
-static boolean
-can_turn(nrow, ncol)
-short nrow, ncol;
+
+static boolean can_turn(const short nrow, const short ncol)
 {
 	if ((dungeon[nrow][ncol] & TUNNEL) && is_passable(nrow, ncol)) {
 		return(1);
@@ -630,12 +643,11 @@ short nrow, ncol;
 	return(0);
 }
 
-turn_passage(dir, fast)
-short dir;
-boolean fast;
+
+static void turn_passage(const short dir, const boolean fast)	/* only used within this file */
 {
 	short crow = rogue.row, ccol = rogue.col, turns = 0;
-	short ndir;
+	short ndir = 0;	/* fix compiler warning */
 
 	if ((dir != 'h') && can_turn(crow, ccol + 1)) {
 		turns++;
@@ -657,3 +669,4 @@ boolean fast;
 		multiple_move_rogue(ndir - (fast ? 32 : 96));
 	}
 }
+

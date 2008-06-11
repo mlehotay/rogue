@@ -53,8 +53,12 @@ extern short halluc, blind, cur_level;
 extern short add_strength, ring_exp, r_rings;
 extern boolean being_held, interrupted, wizard, con_mon;
 
-mon_hit(monster)
-register object *monster;
+
+static short to_hit(const object *obj);	/* only used within this file */
+static short damage_for_strength(void);	/*only used within this file*/
+
+
+void mon_hit(object *monster)
 {
 	short damage, hit_chance;
 	char *mn;
@@ -96,8 +100,8 @@ register object *monster;
 		if (cur_level >= (AMULET_LEVEL * 2)) {
 			minus = (float) ((AMULET_LEVEL * 2) - cur_level);
 		} else {
-			minus = (float) get_armor_class(rogue.armor) * 3.00;
-			minus = minus/100.00 * (float) damage;
+			minus = (float) (get_armor_class(rogue.armor) * 3.00);	/* fix compiler warning */
+			minus = (float) (minus/100.00) * (float) damage;	/* fix compiler warning */
 		}
 		damage -= (short) minus;
 	} else {
@@ -114,9 +118,8 @@ register object *monster;
 	}
 }
 
-rogue_hit(monster, force_hit)
-register object *monster;
-boolean force_hit;
+
+void rogue_hit(object *monster, const boolean force_hit)
 {
 	short damage, hit_chance;
 
@@ -152,10 +155,8 @@ RET:	check_gold_seeker(monster);
 	}
 }
 
-rogue_damage(d, monster, other)
-short d;
-object *monster;
-short other;
+
+void rogue_damage(const short d, object *monster, const short other)
 {
 	if (d >= rogue.hp_current) {
 		rogue.hp_current = 0;
@@ -168,11 +169,10 @@ short other;
 	}
 }
 
-get_damage(ds, r)
-char *ds;
-boolean r;
+
+short get_damage(char *ds, const boolean r)
 {
-	register i = 0, j, n, d, total = 0;
+	int i = 0, j, n, d, total = 0;
 
 	while (ds[i]) {
 		n = get_number(ds+i);
@@ -191,15 +191,15 @@ boolean r;
 			i++;
 		}
 	}
-	return(total);
+	return( (short) total);
 }
 
-get_w_damage(obj)
-object *obj;
+
+static short get_w_damage(const object *obj)	/*only used within this file*/
 {
 	char new_damage[12];
-	register to_hit, damage;
-	register i = 0;
+	int to_hit, damage;
+	int i = 0;
 
 	if ((!obj) || (obj->what_is != WEAPON)) {
 		return(-1);
@@ -213,11 +213,11 @@ object *obj;
 	return(get_damage(new_damage, 1));
 }
 
-get_number(s)
-register char *s;
+
+int get_number(const char *s)
 {
-	register i = 0;
-	register total = 0;
+	int i = 0;
+	int total = 0;
 
 	while ((s[i] >= '0') && (s[i] <= '9')) {
 		total = (10 * total) + (s[i] - '0');
@@ -226,9 +226,8 @@ register char *s;
 	return(total);
 }
 
-long
-lget_number(s)
-char *s;
+
+long lget_number(const char *s)
 {
 	short i = 0;
 	long total = 0;
@@ -240,16 +239,17 @@ char *s;
 	return(total);
 }
 
-to_hit(obj)
-object *obj;
+
+static short to_hit(const object *obj)	/* only used within this file */
 {
 	if (!obj) {
 		return(1);
 	}
-	return(get_number(obj->damage) + obj->hit_enchant);
+	return( (short) (get_number(obj->damage) + obj->hit_enchant) );
 }
 
-damage_for_strength()
+
+static short damage_for_strength(void)	/*only used within this file*/
 {
 	short strength;
 
@@ -279,9 +279,8 @@ damage_for_strength()
 	return(8);
 }
 
-mon_damage(monster, damage)
-object *monster;
-short damage;
+
+int mon_damage(object *monster, const short damage)
 {
 	char *mn;
 	short row, col;
@@ -312,8 +311,8 @@ short damage;
 	return(1);
 }
 
-fight(to_the_death)
-boolean to_the_death;
+
+void fight(const boolean to_the_death)
 {
 	short ch, c, d;
 	short row, col;
@@ -335,7 +334,7 @@ boolean to_the_death;
 	row = rogue.row; col = rogue.col;
 	get_dir_rc(d, &row, &col, 0);
 
-	c = mvinch(row, col);
+	c = (short) mvinch(row, col);
 	if (((c < 'A') || (c > 'Z')) ||
 		(!can_move(rogue.row, rogue.col, row, col))) {
 		message("I see no monster there", 0);
@@ -363,10 +362,8 @@ boolean to_the_death;
 	}
 }
 
-get_dir_rc(dir, row, col, allow_off_screen)
-short dir;
-short *row, *col;
-short allow_off_screen;
+
+void get_dir_rc(const short dir, short *row, short *col, const short allow_off_screen)
 {
 	switch(dir) {
 	case LEFT:
@@ -416,8 +413,8 @@ short allow_off_screen;
 	}
 }
 
-get_hit_chance(weapon)
-object *weapon;
+
+short get_hit_chance(const object *weapon)
 {
 	short hit_chance;
 
@@ -427,8 +424,8 @@ object *weapon;
 	return(hit_chance);
 }
 
-get_weapon_damage(weapon)
-object *weapon;
+
+short get_weapon_damage(const object *weapon)
 {
 	short damage;
 
@@ -438,8 +435,8 @@ object *weapon;
 	return(damage);
 }
 
-s_con_mon(monster)
-object *monster;
+
+void s_con_mon(object *monster)
 {
 	if (con_mon) {
 		monster->m_flags |= CONFUSED;

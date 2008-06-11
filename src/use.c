@@ -66,7 +66,16 @@ extern char *fruit, *you_can_move_again;
 extern boolean sustain_strength;
 extern boolean use_color;
 
-quaff()
+
+static void potion_heal(const int extra);	/*used only within this file*/
+static void idntfy(void);			/*only used within this file*/
+static void hold_monster(void);		/*only used within this file*/
+static void go_blind(void);			/*only used within this file*/
+static char * get_ench_color(void);	/*only used within this file*/
+static void uncurse_all(void);		/*only used within this file*/
+
+
+void quaff(void)
 {
 	short ch;
 	char buf[80];
@@ -108,7 +117,7 @@ quaff()
 			break;
 		case POISON:
 			if (!sustain_strength) {
-				rogue.str_current -= get_rand(1, 3);
+				rogue.str_current -= (short) get_rand(1, 3);
 				if (rogue.str_current < 1) {
 					rogue.str_current = 1;
 				}
@@ -128,7 +137,7 @@ quaff()
 			break;
 		case HALLUCINATION:
 			message("oh wow, everything seems so cosmic", 0);
-			halluc += get_rand(500, 800);
+			halluc += (short) get_rand(500, 800);
 			break;
 		case DETECT_MONSTER:
 			show_monsters();
@@ -152,12 +161,14 @@ quaff()
 			break;
 		case LEVITATION:
 			message("you start to float in the air", 0);
-			levitate += get_rand(15, 30);
-			being_held = bear_trap = 0;
+			levitate += (short) get_rand(15, 30);
+/*			being_held = bear_trap = 0;		fix compiler type conversion warning */
+			being_held = 0;
+			bear_trap = 0;
 			break;
 		case HASTE_SELF:
 			message("you feel yourself moving much faster", 0);
-			haste_self += get_rand(11, 21);
+			haste_self += (short) get_rand(11, 21);
 			if (!(haste_self % 2)) {
 				haste_self++;
 			}
@@ -179,7 +190,8 @@ quaff()
 	vanish(obj, 1, &rogue.pack);
 }
 
-read_scroll()
+
+void read_scroll(void)
 {
 	short ch;
 	object *obj;
@@ -291,10 +303,7 @@ read_scroll()
  *  arrow (or whatever) in the quiver.  It will only decrement the count.
  */
 
-vanish(obj, rm, pack)
-object *obj;
-short rm;
-object *pack;
+void vanish(object *obj, const short rm, object *pack)
 {
 	if (obj->quantity > 1) {
 		obj->quantity--;
@@ -314,7 +323,11 @@ object *pack;
 	}
 }
 
+/* OLD_CODE - extra is implicitly defined and only called with hard coded 0 or 1
 potion_heal(extra)
+*/
+
+static void potion_heal(const int extra)	/*used only within this file*/
 {
 	float ratio;
 	short add;
@@ -359,7 +372,8 @@ potion_heal(extra)
 	}
 }
 
-idntfy()
+
+static void idntfy(void)	/*only used within this file*/
 {
 	short ch;
 	object *obj;
@@ -386,7 +400,8 @@ AGAIN:
 	message(desc, 0);
 }
 
-eat()
+
+void eat(void)
 {
 	short ch;
 	short moves;
@@ -407,7 +422,7 @@ eat()
 		return;
 	}
 	if ((obj->which_kind == FRUIT) || rand_percent(60)) {
-		moves = get_rand(950, 1150);
+		moves = (short) get_rand(950, 1150);
 		if (obj->which_kind == RATION) {
 			message("yum, that tasted good", 0);
 		} else {
@@ -415,7 +430,7 @@ eat()
 			message(buf, 0);
 		}
 	} else {
-		moves = get_rand(750, 950);
+		moves = (short) get_rand(750, 950);
 		message("yuk, that food tasted awful", 0);
 		add_exp(2, 1);
 	}
@@ -427,7 +442,8 @@ eat()
 	vanish(obj, 1, &rogue.pack);
 }
 
-hold_monster()
+
+static void hold_monster(void)	/*only used within this file*/
 {
 	short i, j;
 	short mcount = 0;
@@ -459,7 +475,8 @@ hold_monster()
 	}
 }
 
-tele()
+
+void tele(void)
 {
 	mvaddcch(rogue.row, rogue.col, get_dungeon_char(rogue.row, rogue.col));
 
@@ -471,7 +488,8 @@ tele()
 	bear_trap = 0;
 }
 
-hallucinate()
+
+void hallucinate(void)
 {
 	object *obj, *monster;
 	short ch;
@@ -496,7 +514,7 @@ hallucinate()
 
 	obj = level_objects.next_object;
 	while (obj) {
-		ch = mvinch(obj->row, obj->col);
+		ch = (short) mvinch(obj->row, obj->col);
 		if (((ch < 'A') || (ch > 'Z')) &&
 			((obj->row != rogue.row) || (obj->col != rogue.col)))
 		/* if ((ch != ' ') && (ch != '.') && (ch != '\xB1') && (ch != '+')) { */
@@ -512,7 +530,7 @@ hallucinate()
 	monster = level_monsters.next_monster;
 
 	while (monster) {
-		ch = mvinch(monster->row, monster->col);
+		ch = (short) mvinch(monster->row, monster->col);
 		if ((ch >= 'A') && (ch <= 'Z')) {
 			addch(get_rand('A', 'Z'));
 		}
@@ -520,14 +538,16 @@ hallucinate()
 	}
 }
 
-unhallucinate()
+
+void unhallucinate(void)
 {
 	halluc = 0;
 	relight();
 	message("everything looks SO boring now", 1);
 }
 
-unblind()
+
+void unblind(void)
 {
 	blind = 0;
 	message("the veil of darkness lifts", 1);
@@ -540,7 +560,8 @@ unblind()
 	}
 }
 
-relight()
+
+void relight(void)
 {
 	if (cur_room == PASSAGE) {
 		light_passage(rogue.row, rogue.col);
@@ -550,11 +571,12 @@ relight()
 	mvaddcch(rogue.row, rogue.col, get_rogue_char());
 }
 
-take_a_nap()
+
+void take_a_nap(void)
 {
 	short i;
 
-	i = get_rand(2, 5);
+	i = (short) get_rand(2, 5);
 	md_sleep(1);
 
 	while (i--) {
@@ -564,14 +586,15 @@ take_a_nap()
 	message(you_can_move_again, 0);
 }
 
-go_blind()
+
+static void go_blind(void)		/*only used within this file*/
 {
 	short i, j;
 
 	if (!blind) {
 		message("a cloak of darkness falls around you", 0);
 	}
-	blind += get_rand(500, 800);
+	blind += (short) get_rand(500, 800);
 
 	if (detect_monster) {
 		object *monster;
@@ -595,8 +618,8 @@ go_blind()
 	mvaddcch(rogue.row, rogue.col, get_rogue_char());
 }
 
-char *
-get_ench_color()
+
+static char * get_ench_color(void)		/*only used within this file*/
 {
 	if (halluc) {
 		return(id_potions[get_rand(0, POTIONS-1)].title);
@@ -606,12 +629,14 @@ get_ench_color()
 	return("blue ");
 }
 
-cnfs()
+
+void cnfs(void)
 {
-	confused += get_rand(12, 22);
+	confused += (short) get_rand(12, 22);
 }
 
-unconfuse()
+
+void unconfuse(void)
 {
 	char msg[80];
 
@@ -620,7 +645,8 @@ unconfuse()
 	message(msg, 1);
 }
 
-uncurse_all()
+
+static void uncurse_all(void)	/*only used within this file*/
 {
 	object *obj;
 

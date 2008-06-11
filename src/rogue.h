@@ -46,7 +46,18 @@
 #ifdef _MSC_VER
 /* supress warnings about parameters and return values,
  * at least until we write proper prototypes */
-#pragma warning(disable:4033 4716 4113)
+
+/* OLD_CODE - show all warnings
+#pragma warning(disable:4033 4716 4113)	
+*/
+
+
+/*add in standard include files for strlen, sprintf, etc.*/
+#include <string.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <ctype.h>
+
 #endif
 
 typedef unsigned char boolean;
@@ -390,7 +401,7 @@ typedef struct rm room;
 #define STAT_ALL 0377
 
 
-/* #define PARTY_TIME 10 */ 	/* (NS - this is unused) one party somewhere in each 10 level span */
+/* #define PARTY_TIME 10 */	/* (NS - this is unused) one party somewhere in each 10 level span */
 #define PARTY_PCT	8	/* NS - % of levels having a party room */
 #define BIG_PARTY_PCT	1	/* NS - % of party rooms that are supersized */
 
@@ -501,54 +512,55 @@ extern object level_monsters;
 
 /* external routine declarations.
  */
+
+/* 
 char *strcpy();
 char *strncpy();
 char *strcat();
+*/
 
-char *mon_name();
-char *get_ench_color();
-char *name_of();
-char *md_gln();
-char *md_getenv();
-char *md_malloc();
-boolean is_direction();
-boolean mon_sees();
-boolean mask_pack();
-boolean mask_room();
-boolean is_digit();
-boolean check_hunger();
-boolean reg_move();
-boolean md_df();
-boolean has_been_touched();
-object *add_to_pack();
-object *alloc_object();
-object *get_letter_object();
-object *gr_monster();
-object *get_thrown_at_monster();
-object *get_zapped_monster();
-object *check_duplicate();
-object *gr_object();
-object *object_at();
-object *pick_up();
-struct id *get_id_table();
-unsigned short gr_what_is();
-long rrandom();
-long lget_number();
-long xxx();
-void byebye(), onintr(), error_save();
-color_char mvincch(short row, short col);
-color_char get_mask_char(register unsigned short mask);
-color_char get_dungeon_char();
-color_char get_terrain_char();
-color_char get_rogue_char();
-color_char gmc_row_col();
-color_char gr_obj_char(int ix);
-color_char gmc();
-int gr_obj_index();
-
+	/* char *mon_name();	OLD_CODE - declared in the monster.c prototype section below */
+	/* char *get_ench_color();	OLD_CODE - declared in and only used in use.c */
+	/* char *name_of();	OLD_CODE - declared in the object.c prototype section below */
+	/* char *md_gln();	OLD_CODE - declared in the machdep.c prototype section below */
+	/* char *md_getenv();	OLD_CODE - declared in the machdep.c prototype section below */
+	/* char *md_malloc();	OLD_CODE - declared in the machdep.c prototype section below */
+	/* boolean is_direction();	  OLD_CODE - see the move.c ANSI prototype section below */
+	/* boolean mon_sees();	OLD_CODE - see the monster.c ANSI prototype section below */
+	/* boolean mask_pack();  OLD_CODE - declared in and only used in pack.c */
+	/* boolean mask_room();  OLD_CODE - declared in and only used in level.c */
+	/* boolean check_hunger();	  OLD_CODE - see the move.c ANSI prototype section below */
+	/* boolean reg_move();	  OLD_CODE - see the move.c ANSI prototype section below */
+	/* boolean md_df();		OLD_CODE - declared in the machdep.c prototype section below */
+	/* boolean has_been_touched();	OLD_CODE - declared in and only used in save.c	*/
+	/* object *add_to_pack();	OLD_CODE - declared in the pack.c prototype section below */
+	/* object *alloc_object();	OLD_CODE - declared in the object.c prototype section below */
+	/* object *get_letter_object();		OLD_CODE - see object.c ANSI prototype below*/
+	/* object *gr_monster();	OLD_CODE - declared in the monster.c prototype section below */
+	/* object *get_thrown_at_monster();	OLD_CODE - declared in and only used in throw.c */
+	/* object *get_zapped_monster(); OLD_CODE - declared in and only used in zap.c */
+	/* object *check_duplicate();	OLD_CODE - declared in and only used in pack.c */
+	/* object *gr_object();	OLD_CODE - declared in the object.c prototype section below */
+	/* object *object_at();	OLD_CODE - see object.c ANSI prototype below*/
+	/* object *pick_up();	OLD_CODE - see pack.c ANSI prototype below*/
+	/* struct id *get_id_table();	OLD_CODE - declared in the invent.c prototype section below */
+	/* unsigned short gr_what_is();	OLD_CODE - declared in the object.c prototype section below */
+	/* long lget_number();		OLD_CODE - declared in the hit.c prototype section below */
+	/* long xxx();	OLD_CODE - see score.c ANSI prototype below*/
+	/* void byebye(), onintr(), error_save();	OLD_CODE - see init.c ANSI prototype below*/
+	/* color_char mvincch(short row, short col);	OLD_CODE - see curses.c ANSI prototype below*/
+	/* color_char get_mask_char(unsigned short mask);	OLD_CODE - see room.c ANSI prototype below*/
+	/* color_char get_dungeon_char();	OLD_CODE - see room.c ANSI prototype below*/
+	/* color_char get_terrain_char();	OLD_CODE - see room.c ANSI prototype below*/
+	/* color_char get_rogue_char();	OLD_CODE - see room.c ANSI prototype below*/
+	/* color_char gmc_row_col();  OLD_CODE - see the monster.c ANSI prototype section below */
+	/* color_char gr_obj_char(int ix); OLD_CODE - see the room.c ANSI prototype section below */
+	/* color_char gmc();  OLD_CODE - see the monster.c ANSI prototype section below */
+	/* int gr_obj_index(); OLD_CODE - see the room.c ANSI prototype section below */
 
 
-struct rogue_time {
+
+struct rogue_time_struct_definition {
 	short year;		/* >= 1987 */
 	short month;	/* 1 - 12 */
 	short day;		/* 1 - 31 */
@@ -557,4 +569,301 @@ struct rogue_time {
 	short second;	/* 0 - 59 */
 };
 
+typedef struct rogue_time_struct_definition rogue_time;	/* fixes many compiler wanings */
+
 extern int LINES, COLS;
+
+
+	/* curses.c */
+char rgetchar(void);
+void initscr(void);
+void move(const short row, const short col);
+void addstr(char *str);
+void mvaddstr(const short row, const short col, char *str);
+void mvaddstr_in_color(const short row, const short col, char *str, const byte color);
+void mvaddcstr(const short row, const short col, color_char *cstr);
+void addch(const int ch);
+void mvaddch(const short row, const short col, const int ch);
+void addcch(const color_char cc);
+void mvaddcch(const short row, const short col, const color_char cc);
+void colorize(char *str, const byte color, color_char *cstr);
+void refresh(void);
+void redraw(void);
+int mvinch(const short row, const short col);
+color_char mvincch(const short row, const short col);
+void clear(void);
+void clrtoeol(void);
+void standout(void);
+void standend(void);
+void draw_box(const color_char cset[6], const short ulrow, const short ulcol, const short height, const short width);
+void endwin(void);
+void crmode(void);
+void noecho(void);
+void nonl(void);
+
+
+	/* hit.c */
+void mon_hit(object *monster);
+void rogue_hit(object *monster, const boolean force_hit);
+void rogue_damage(const short d, object *monster, const short other);
+short get_damage(char *ds, const boolean r);
+int get_number(const char *s);
+long lget_number(const char *s);
+int mon_damage(object *monster, const short damage);
+void fight(const boolean to_the_death);
+void get_dir_rc(const short dir, short *row, short *col, const short allow_off_screen);
+short get_hit_chance(const object *weapon);
+short get_weapon_damage(const object *weapon);
+void s_con_mon(object *monster);
+
+
+	/* init.c */
+int init(const int argc, char *argv[]);
+void make_filename(char **fname, const char *name);
+void clean_up(const char *estr);
+void start_window(void);
+void stop_window(void);
+void byebye(void);
+void onintr(void);
+void error_save(void);
+void strip(char *s, const boolean add_blank);
+
+
+	/* invent.c */
+void inventory(object *pack, const unsigned short mask);
+void id_com(void);
+void mix_colors(void);
+void make_scroll_titles(void);
+void get_desc(object *obj, char *desc);
+void get_wand_and_ring_materials(void);
+void single_inv(const short ichar);
+struct id * get_id_table(const object *obj);
+void inv_armor_weapon(const boolean is_weapon);
+void id_type(void);
+
+
+	/* level.c */
+void make_level(void);
+void clear_level(void);
+void put_player(const short nr);
+int drop_check(void);
+int check_up(void);
+void add_exp(const int e, const boolean promotion);
+int hp_raise(void);
+void show_average_hp(void);
+
+
+	/* machdep.c */
+void md_slurp(void);
+void md_control_keybord(boolean mode);
+void md_heed_signals(void);
+void md_ignore_signals(void);
+int md_get_file_id(char *fname);
+int md_link_count(char *fname);
+void md_gct(rogue_time *rt_buf);
+void md_gfmt(char *fname, rogue_time *rt_buf);
+boolean md_df(const char *fname);
+char * md_gln(void);
+void md_sleep(const int nsecs);
+char * md_getenv(const char *name);
+char * md_malloc(const int n);
+int md_gseed(void);
+void md_exit(int status);
+void md_lock(boolean l);
+void md_shell(const char *shell);
+
+
+	/* message.c */
+void message(char *msg, const boolean intrpt);
+void remessage(short c);
+void check_message(void);
+short get_input_line(char *prompt, char *insert, char *buf, char *if_cancelled, const boolean add_blank, const boolean do_echo);
+void print_stats(const int stat_mask);
+void save_screen(void);
+void sound_bell(void);
+boolean is_digit(const short ch);
+int r_index(const char *str, const int ch, const boolean last);
+
+	/* monster.c */
+void put_mons(void);
+object * gr_monster(object *monster, int mn);
+void mv_mons(void);
+void party_monsters(const int rn, int n);
+color_char gmc_row_col(const short row, const short col);
+color_char gmc(const object *monster);
+void mv_1_monster(object *monster, short row, short col);
+void move_mon_to(object *monster, const short row, const short col);
+short mon_can_go(const object *monster, const short row, const short col);
+void wake_up(object *monster);
+void wake_room(const short rn, const boolean entering, const short row, const short col);
+char * mon_name(const object *monster);
+void wanderer(void);
+void show_monsters(void);
+void create_monster(void);
+int rogue_can_see(const short row, const short col);
+void aggravate(void);
+boolean mon_sees(const object *monster, const short row, const short col);
+void mv_aquatars(void);
+
+
+	/* move.c */
+short one_move_rogue(short dirch, const short pickup);
+void multiple_move_rogue(const short dirch);
+int is_passable(const short row, const short col);
+int can_move(const short row1, const short col1, const short row2, const short col2);
+void move_onto(void);
+boolean is_direction(const short c, short *d);
+boolean check_hunger(const boolean msg_only);
+boolean reg_move(void);
+void rest(const int count);
+
+
+	/* object.c */
+void put_objects(void);
+void place_at(object *obj, const short row, const short col);
+object * object_at(object *pack, const short row, const short  col);
+object * get_letter_object(const short ch);
+void free_stuff(object *objlist);
+char * name_of(const object *obj);
+object * gr_object(void);
+unsigned short gr_what_is(void);
+void get_food(object *obj, const boolean force_ration);
+void put_stairs(void);
+int get_armor_class(const object *obj);
+object * alloc_object(void);
+void free_object(object *obj);
+void show_objects(void);
+void put_amulet(void);
+void c_object_for_wizard(void);
+#ifdef DISCOVERY
+	void discovery(void);
+#endif
+
+
+	/* pack.c */
+object * add_to_pack(object *obj, object *pack, const int condense);
+void take_from_pack(const object *obj, object *pack);
+object * pick_up(const short row, const short col, short *status);
+void drop(void);
+void wait_for_ack(void);
+short pack_letter(char *prompt, unsigned short mask);
+void take_off(void);
+void wear(void);
+void unwear(object *obj);
+void do_wear(object *obj);
+void wield(void);
+void do_wield(object *obj);
+void unwield(object *obj);
+void call_it(void);
+short pack_count(object *new_obj);
+boolean has_amulet(void);
+void kick_into_pack(void);
+
+
+	/* play.c */
+void play_level(void);
+
+
+	/* random.c */
+void srrandom(const int x);
+long rrandom();
+int get_rand(int x, int y);
+int rand_percent(const int percentage);
+int coin_toss(void);
+
+
+	/* ring.c */
+void put_on_ring(void);
+void do_put_on(object *ring, const boolean on_left);
+void remove_ring(void);
+void un_put_on(object *ring);
+void gr_ring(object *ring, const boolean assign_wk);
+void inv_rings(void);
+void ring_stats(const boolean pr);
+
+
+	/* room.c */
+void light_up_room(const int rn);
+void light_passage(const short row, const short col);
+void darken_room(const short rn);
+color_char get_terrain_char(const unsigned short mask);
+color_char get_dungeon_char(const short row, const short col);
+color_char get_mask_char(const unsigned short mask);
+color_char get_rogue_char(void);
+void regenerate_screen(void);
+void gr_row_col(short *row, short *col, const unsigned short mask);
+short gr_room(void);
+short party_objects(const short rn);
+short get_room_number(const short row, const short col);
+int is_all_connected(void);
+void draw_magic_map(void);
+void dr_course(object *monster, const boolean entering, short row, short col);
+void edit_opts(void);
+void do_shell(void);
+color_char gr_obj_char(const int ix);
+int gr_obj_index(void);
+
+
+	/* save.c */
+void save_game(void);
+void save_into_file(char *sfile);
+void restore(char *fname);
+
+
+	/* score.c */
+void killed_by(const object *monster, const short other);
+void win(void);
+void quit(const boolean from_intrpt);
+void put_scores(const object *monster, const short other);
+int is_vowel(const short ch);
+int get_value(const object *obj);
+void xxxx(char *buf, const short n);
+long xxx(const boolean st);
+
+
+	/* spec_hit.c */
+void special_hit(object *monster);
+void rust(object *monster);
+void cough_up(const object *monster);
+int seek_gold(object *monster);
+void check_gold_seeker(object *monster);
+int check_imitator(object *monster);
+int imitating(const short row, const short col);
+void drain_life(void);
+int m_confuse(object *monster);
+int flame_broil(object *monster);
+
+
+	/* throw.c */
+void throw(void);
+void rand_around(const short i, short *r, short *c);
+
+
+	/* trap.c */
+void trap_player(const short row, const short col);
+void add_traps(void);
+void id_trap(void);
+void show_traps(void);
+void search(const short n, const boolean is_auto);
+
+	/* use.c */
+void quaff(void);
+void read_scroll(void);
+void vanish(object *obj, const short rm, object *pack);
+void eat(void);
+void tele(void);
+void hallucinate(void);
+void unhallucinate(void);
+void unblind(void);
+void relight(void);
+void take_a_nap(void);
+void cnfs(void);
+void unconfuse(void);
+
+
+	/*zap.c*/
+void zapp(void);
+void wizardize(void);
+void bounce(const short ball, const short dir, short row, short col, short r);
+
+

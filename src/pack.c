@@ -50,9 +50,18 @@ char *curse_message = "you can't, it appears to be cursed";
 
 extern short levitate;
 
-object *
+static object * check_duplicate(object *obj, object *pack);	/*only used within this file*/
+static short next_avail_ichar(void);		/*used only within this file*/
+static boolean mask_pack(object *pack, const unsigned short mask);	/*used only within this file*/
+static int is_pack_letter(short *c, unsigned short *mask);	/*used only within this file*/
+
+/* OLD_CODE - condense is implicitly defined - it always is called with a hard coded 0 or 1
+object * 
 add_to_pack(obj, pack, condense)
 object *obj, *pack;
+*/
+
+object * add_to_pack(object *obj, object *pack, const int condense)
 {
 	object *op;
 
@@ -78,8 +87,8 @@ object *obj, *pack;
 	return(obj);
 }
 
-take_from_pack(obj, pack)
-object *obj, *pack;
+
+void take_from_pack(const object *obj, object *pack)
 {
 	while (pack->next_object != obj) {
 		pack = pack->next_object;
@@ -91,9 +100,13 @@ object *obj, *pack;
  * of scare-monster and it turns to dust.  *status is otherwise set to 1.
  */
 
-object *
+/* OLD_CODE - note that row, col are implicitly defined.  
+object * 
 pick_up(row, col, status)
 short *status;
+*/
+
+object * pick_up(const short row, const short col, short *status)
 {
 	object *obj;
 
@@ -138,7 +151,8 @@ short *status;
 	return(obj);
 }
 
-drop()
+
+void drop(void)
 {
 	object *obj, *new;
 	short ch;
@@ -200,9 +214,7 @@ drop()
 	(void) reg_move();
 }
 
-object *
-check_duplicate(obj, pack)
-object *obj, *pack;
+static object * check_duplicate(object *obj, object *pack)	/*only used within this file*/
 {
 	object *op;
 
@@ -234,10 +246,10 @@ object *obj, *pack;
 	return(0);
 }
 
-next_avail_ichar()
+static short next_avail_ichar(void)		/*only used within this file*/
 {
-	register object *obj;
-	register i;
+	object *obj;
+	short i;	/* fix compiler warning*/
 	boolean ichars[26];
 
 	for (i = 0; i < 26; i++) {
@@ -256,7 +268,8 @@ next_avail_ichar()
 	return('?');
 }
 
-wait_for_ack()
+
+void wait_for_ack(void)
 {
     char c;
     do {
@@ -264,9 +277,8 @@ wait_for_ack()
     } while (c!=' ' && c!='\n' && c!='\r');
 }
 
-pack_letter(prompt, mask)
-char *prompt;
-unsigned short mask;
+
+short pack_letter(char *prompt, unsigned short mask)
 {
 	short ch;
 	unsigned short tmask = mask;
@@ -301,7 +313,8 @@ unsigned short mask;
 	return(ch);
 }
 
-take_off()
+
+void take_off(void)
 {
 	char desc[DCOLS];
 	object *obj;
@@ -324,10 +337,11 @@ take_off()
 	}
 }
 
-wear()
+
+void wear(void)
 {
 	short ch;
-	register object *obj;
+	object *obj;
 	char desc[DCOLS];
 
 	if (rogue.armor) {
@@ -356,8 +370,7 @@ wear()
 	(void) reg_move();
 }
 
-unwear(obj)
-object *obj;
+void unwear(object *obj)
 {
 	if (obj) {
 		obj->in_use_flags &= (~BEING_WORN);
@@ -365,18 +378,18 @@ object *obj;
 	rogue.armor = (object *) 0;
 }
 
-do_wear(obj)
-object *obj;
+void do_wear(object *obj)
 {
 	rogue.armor = obj;
 	obj->in_use_flags |= BEING_WORN;
 	obj->identified = 1;
 }
 
-wield()
+
+void wield(void)
 {
 	short ch;
-	register object *obj;
+	object *obj;
 	char desc[DCOLS];
 
 	if (rogue.weapon && rogue.weapon->is_cursed) {
@@ -389,7 +402,7 @@ wield()
 		return;
 	}
 	if (!(obj = get_letter_object(ch))) {
-		message("No such item.", 0);
+		message("no such item.", 0);	/* all other "no such item." strings have lowercase 'n' */
 		return;
 	}
 	if (obj->what_is & (ARMOR | RING)) {
@@ -410,15 +423,15 @@ wield()
 	}
 }
 
-do_wield(obj)
-object *obj;
+
+void do_wield(object *obj)
 {
 	rogue.weapon = obj;
 	obj->in_use_flags |= BEING_WIELDED;
 }
 
-unwield(obj)
-object *obj;
+
+void unwield(object *obj)
 {
 	if (obj) {
 		obj->in_use_flags &= (~BEING_WIELDED);
@@ -426,10 +439,11 @@ object *obj;
 	rogue.weapon = (object *) 0;
 }
 
-call_it()
+
+void call_it(void)
 {
 	short ch;
-	register object *obj;
+	object *obj;
 	struct id *id_table;
 	char buf[MAX_TITLE_LENGTH+2];
 
@@ -454,8 +468,8 @@ call_it()
 	}
 }
 
-pack_count(new_obj)
-object *new_obj;
+
+short pack_count(object *new_obj)
 {
 	object *obj;
 	short count = 0;
@@ -481,10 +495,7 @@ object *new_obj;
 	return(count);
 }
 
-boolean
-mask_pack(pack, mask)
-object *pack;
-unsigned short mask;
+static boolean mask_pack(object *pack, const unsigned short mask)
 {
 	while (pack->next_object) {
 		pack = pack->next_object;
@@ -495,9 +506,7 @@ unsigned short mask;
 	return(0);
 }
 
-is_pack_letter(c, mask)
-short *c;
-unsigned short *mask;
+static int is_pack_letter(short *c, unsigned short *mask)	/*used only in this file*/
 {
 	if (((*c == '?') || (*c == '!') || (*c == ':') || (*c == '=') ||
 		(*c == ')') || (*c == ']') || (*c == '/') || (*c == ','))) {
@@ -533,12 +542,14 @@ unsigned short *mask;
 	return(((*c >= 'a') && (*c <= 'z')) || (*c == CANCEL) || (*c == LIST));
 }
 
-has_amulet()
+
+boolean has_amulet(void)
 {
 	return(mask_pack(&rogue.pack, AMULET));
 }
 
-kick_into_pack()
+
+void kick_into_pack(void)
 {
 	object *obj;
 	char desc[DCOLS];
@@ -553,9 +564,9 @@ kick_into_pack()
 				message(desc, 0);
 				free_object(obj);
 			} else {
-				n = strlen(desc);
+				n = (short) strlen(desc);
 				desc[n] = '(';
-				desc[n+1] = obj->ichar;
+				desc[n+1] = (char) obj->ichar;
 				desc[n+2] = ')';
 				desc[n+3] = 0;
 				message(desc, 0);

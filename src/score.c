@@ -54,11 +54,20 @@ extern short cur_level, max_level;
 extern boolean score_only, display_skull, msg_cleared, use_color, use_doschars;
 extern char *byebye_string;
 
+
+static void insert_score(char scores[][82], const short rank, const short n, const object *monster, const short other); /* only used within this file */
+static void sell_pack(void);				/* only used within this file */
+static void id_all(void);					/* only used within this file */
+static int name_cmp(char *s1, char *s2);	/* only used within this file */
+static void center(const short row, char *buf);	/* only used within this file */
+static void center_in_color(const short row, char *buf, const byte color);	/* only used within this file */
+static void sf_error(void);	/* only used within this file */
+
+
 /*  NS:  Added color support
  */
-killed_by(monster, other)
-object *monster;
-short other;
+
+void killed_by(const object *monster, const short other)
 {
 	char buf[128];
 	char gold[128];
@@ -152,7 +161,8 @@ short other;
 	put_scores(monster, other);
 }
 
-win()
+
+void win(void)
 {
 	unwield(rogue.weapon);		/* disarm and relax */
 	unwear(rogue.armor);
@@ -175,8 +185,8 @@ win()
 	put_scores((object *) 0, WIN);
 }
 
-quit(from_intrpt)
-boolean from_intrpt;
+
+void quit(const boolean from_intrpt)
 {
 	char buf[128];
 	short i, orow, ocol;
@@ -191,7 +201,7 @@ boolean from_intrpt;
 		mc = msg_cleared;
 
 		for (i = 0; i < DCOLS; i++) {
-			buf[i] = mvinch(0, i);
+			buf[i] = (char) mvinch(0, i);
 		}
 	}
 	check_message();
@@ -216,9 +226,8 @@ boolean from_intrpt;
 	killed_by((object *) 0, QUIT);
 }
 
-put_scores(monster, other)
-object *monster;
-short other;
+
+void put_scores(const object *monster, const short other)
 {
 	short i, n, rank = 10, x, ne = 0, found_player = -1;
 	char scores[10][82];
@@ -237,7 +246,7 @@ short other;
 	(void) xxx(1);
 
 	for (i = 0; i < 10; i++) {
-		if (((n = fread(scores[i], sizeof(char), 80, fp)) < 80) && (n != 0)) {
+		if (((n = (short) fread(scores[i], sizeof(char), 80, fp)) < 80) && (n != 0)) {
 			sf_error();
 		} else if (n != 0) {
 			xxxx(scores[i], 80);
@@ -312,7 +321,7 @@ short other;
 			scores[i][1] = '0';
 		} else {
 			scores[i][0] = ' ';
-			scores[i][1] = i + '1';
+			scores[i][1] = (char) (i + '1');
 		}
 		mvaddstr(i+10, 0, scores[i]);
 		if (rank < 10) {
@@ -333,10 +342,8 @@ short other;
 	clean_up("");
 }
 
-insert_score(scores, rank, n, monster, other)
-char scores[][82];
-short rank, n;
-object *monster;
+
+static void insert_score(char scores[][82], const short rank, const short n, const object *monster, const short other) /* only used within this file */
 {
 	short i;
 	char buf[128];
@@ -384,15 +391,15 @@ object *monster;
 	if ((other != WIN) && has_amulet()) {
 		(void) strcat(buf, "with amulet");
 	}
-	for (i = strlen(buf); i < 79; i++) {
+	for (i = (short) strlen(buf); i < 79; i++) {
 		buf[i] = ' ';
 	}
 	buf[79] = 0;
 	(void) strcpy(scores[rank], buf);
 }
 
-is_vowel(ch)
-short ch;
+
+int is_vowel(const short ch)
 {
 	return( (ch == 'a') ||
 		(ch == 'e') ||
@@ -401,7 +408,8 @@ short ch;
 		(ch == 'u') );
 }
 
-sell_pack()
+
+static void sell_pack(void)				/* only used within this file */
 {
 	object *obj;
 	short row = 2, val;
@@ -415,7 +423,7 @@ sell_pack()
 	while (obj) {
 		if (obj->what_is != FOOD) {
 			obj->identified = 1;
-			val = get_value(obj);
+			val = (short) get_value(obj);
 			rogue.gold += val;
 
 			if (row < DROWS) {
@@ -433,8 +441,8 @@ sell_pack()
 	message("", 0);
 }
 
-get_value(obj)
-object *obj;
+
+int get_value(const object *obj)
 {
 	short wc;
 	int val;
@@ -480,7 +488,8 @@ object *obj;
 	return(val);
 }
 
-id_all()
+
+static void id_all(void)		/* only used within this file */
 {
 	short i;
 
@@ -501,8 +510,8 @@ id_all()
 	}
 }
 
-name_cmp(s1, s2)
-char *s1, *s2;
+
+static int name_cmp(char *s1, char *s2)		/* only used within this file */
 {
 	short i = 0;
 	int r;
@@ -516,9 +525,8 @@ char *s1, *s2;
 	return(r);
 }
 
-xxxx(buf, n)
-char *buf;
-short n;
+
+void xxxx(char *buf, const short n)
 {
 	short i;
 	unsigned char c;
@@ -532,9 +540,8 @@ short n;
 	}
 }
 
-long
-xxx(st)
-boolean st;
+
+long xxx(const boolean st)
 {
 	static long f, s;
 	long r;
@@ -551,28 +558,23 @@ boolean st;
 }
 
 
-center(row, buf)
-short row;
-char *buf;
+static void center(const short row, char *buf)	/* only used within this file */
 {
 	center_in_color(row, buf, MAKE_COLOR(WHITE,BLACK));
 }
 
 
-center_in_color(row, buf, color)
-short row;
-char *buf;
-byte color;
+static void center_in_color(const short row, char *buf, const byte color)	/* only used within this file */
 {
 	short margin;
 
-	margin = ((DCOLS - strlen(buf)) / 2);
+	margin = (short) ((DCOLS - strlen(buf)) / 2);
 	mvaddstr_in_color(row, margin, buf,
 					  (use_color) ? color : MAKE_COLOR(WHITE,BLACK));
 }
 
 
-sf_error()
+static void sf_error(void)	/* only used within this file */
 {
 	md_lock(0);
 	message("", 1);

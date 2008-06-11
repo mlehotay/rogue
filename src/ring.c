@@ -63,7 +63,7 @@ boolean maintain_armor;
 extern char *curse_message;
 extern boolean wizard;
 
-put_on_ring()
+void put_on_ring(void)
 {
 	short ch;
 	char desc[DCOLS];
@@ -123,9 +123,7 @@ put_on_ring()
  * serious problems when do_put_on() is called from read_pack() in restore().
  */
 
-do_put_on(ring, on_left)
-object *ring;
-boolean on_left;
+void do_put_on(object *ring, const boolean on_left)
 {
 	if (on_left) {
 		ring->in_use_flags |= ON_LEFT_HAND;
@@ -136,7 +134,8 @@ boolean on_left;
 	}
 }
 
-remove_ring()
+
+void remove_ring(void)
 {
 	boolean left = 0, right = 0;
 	short ch;
@@ -155,8 +154,8 @@ remove_ring()
 			ch = rgetchar();
 		} while ((ch != CANCEL) && (ch != 'l') && (ch != 'r') &&
 			(ch != '\n') && (ch != '\r'));
-		left = (ch == 'l');
-		right = (ch == 'r');
+		left = (boolean) (ch == 'l');
+		right = (boolean) (ch == 'r');
 		check_message();
 	}
 	if (left || right) {
@@ -185,8 +184,8 @@ remove_ring()
 	}
 }
 
-un_put_on(ring)
-object *ring;
+
+void un_put_on(object *ring)
 {
 	if (ring && (ring->in_use_flags & ON_LEFT_HAND)) {
 		ring->in_use_flags &= (~ON_LEFT_HAND);
@@ -198,13 +197,12 @@ object *ring;
 	ring_stats(1);
 }
 
-gr_ring(ring, assign_wk)
-object *ring;
-boolean assign_wk;
+
+void gr_ring(object *ring, const boolean assign_wk)
 {
 	ring->what_is = RING;
 	if (assign_wk) {
-		ring->which_kind = get_rand(0, (RINGS - 1));
+		ring->which_kind = (unsigned short) get_rand(0, (RINGS - 1));
 	}
 	ring->class = 0;
 
@@ -230,16 +228,17 @@ boolean assign_wk;
 		break;
 	case ADD_STRENGTH:
 	case DEXTERITY:
-		while ((ring->class = (get_rand(0, 4) - 2)) == 0) ;
+		while ((ring->class = (short) (get_rand(0, 4) - 2)) == 0) ;
 		ring->is_cursed = (ring->class < 0);
 		break;
 	case ADORNMENT:
-		ring->is_cursed = coin_toss();
+		ring->is_cursed = (short) coin_toss();
 		break;
 	}
 }
 
-inv_rings()
+
+void inv_rings(void)
 {
 	char buf[DCOLS];
 
@@ -264,8 +263,8 @@ inv_rings()
 	}
 }
 
-ring_stats(pr)
-boolean pr;
+
+void ring_stats(const boolean pr)
 {
 	short i;
 	object *ring;

@@ -95,6 +95,7 @@
 #include <windows.h>
 #endif
 
+
 /* md_slurp:
  *
  * This routine throws away all keyboard input that has not
@@ -107,7 +108,7 @@
  * big deal.
  */
 
-md_slurp()
+void md_slurp(void)
 {
 #ifdef _MSC_VER
     FlushConsoleInputBuffer(GetStdHandle(STD_INPUT_HANDLE));
@@ -116,6 +117,7 @@ md_slurp()
         rgetchar();
 #endif
 }
+
 
 /* md_control_keyboard():
  *
@@ -135,11 +137,11 @@ md_slurp()
  * cause certain command characters to be unavailable.
  */
 
-md_control_keybord(mode)
-boolean mode;
+void md_control_keybord(boolean mode)
 {
     mode = mode; /* make compiler happy */
 }
+
 
 /* md_heed_signals():
  *
@@ -157,11 +159,12 @@ boolean mode;
  * input, this is not usually critical.
  */
 
-md_heed_signals()
+void md_heed_signals(void)
 {
 	signal(SIGINT, onintr);
 	signal(SIGTERM, byebye);
 }
+
 
 /* md_ignore_signals():
  *
@@ -175,11 +178,12 @@ md_heed_signals()
  * file, corruption.
  */
 
-md_ignore_signals()
+void md_ignore_signals(void)
 {
 	signal(SIGINT, SIG_IGN);
 	signal(SIGTERM, SIG_IGN);
 }
+
 
 /* md_get_file_id():
  *
@@ -190,13 +194,12 @@ md_ignore_signals()
  * This function is used to identify saved-game files.
  */
 
-int
-md_get_file_id(fname)
-char *fname;
+int md_get_file_id(char *fname)
 {
     fname = fname; /* make compiler happy */
     return 0;
 }
+
 
 /* md_link_count():
  *
@@ -206,13 +209,12 @@ char *fname;
  * this routine can be stubbed by just returning 1.
  */
 
-int
-md_link_count(fname)
-char *fname;
+int md_link_count(char *fname)
 {
     fname = fname; /* make compiler happy */
     return 1;
 }
+
 
 /* md_gct(): (Get Current Time)
  *
@@ -228,8 +230,7 @@ char *fname;
  * saved-game files and play them.  
  */
 
-md_gct(rt_buf)
-struct rogue_time *rt_buf;
+void md_gct(rogue_time *rt_buf)
 {
 	rt_buf->year = 0;
 	rt_buf->month = 0;
@@ -238,6 +239,7 @@ struct rogue_time *rt_buf;
 	rt_buf->minute = 0;
 	rt_buf->second = 0;
 }
+
 
 /* md_gfmt: (Get File Modification Time)
  *
@@ -255,9 +257,7 @@ struct rogue_time *rt_buf;
  * saved-games that have been modified.
  */
 
-md_gfmt(fname, rt_buf)
-char *fname;
-struct rogue_time *rt_buf;
+void md_gfmt(char *fname, rogue_time *rt_buf)
 {
     fname = fname; /* make compiler happy */
     
@@ -280,11 +280,15 @@ struct rogue_time *rt_buf;
  * deleted and can be replayed.
  */
 
-boolean
-md_df(fname)
-char *fname;
+boolean md_df(const char *fname)
 {
-	if (unlink(fname)) {
+#ifndef _MSC_VER
+	if (unlink(fname)) 
+#else
+	if (_unlink(fname))		/* Microsoft C api equivalent*/
+#endif
+
+	{
 		return(0);
 	}
 	return(1);
@@ -299,8 +303,7 @@ char *fname;
  * function, but then the score file would only have one name in it.
  */
 
-char *
-md_gln()
+char * md_gln(void)
 {
     char *name;
 
@@ -330,8 +333,7 @@ md_gln()
  * delaying execution, which is useful to this program at some times.
  */
 
-md_sleep(nsecs)
-int nsecs;
+void md_sleep(int nsecs)
 {
     nsecs = nsecs; /* make compiler happy */    
 #if 0
@@ -366,17 +368,17 @@ int nsecs;
  * string.
  */
 
-char *
-md_getenv(name)
-char *name;
+
+char * md_getenv(const char *name)
 {
 	char *value;
-	char *getenv();
+	/*char *getenv();	 	already defined in stdlib.h */
 
 	value = getenv(name);
 
 	return(value);
 }
+
 
 /* md_malloc()
  *
@@ -386,16 +388,15 @@ char *name;
  * when no more memory can be allocated.
  */
 
-char *
-md_malloc(n)
-int n;
+char * md_malloc(const int n)
 {
-	char *malloc();
+	/* char *malloc();	already defined in included standard header file */
 	char *t;
 
 	t = malloc(n);
 	return(t);
 }
+
 
 /* md_gseed() (Get Seed)
  *
@@ -415,10 +416,19 @@ int n;
  * exactly the same way given the same input.
  */
 
-md_gseed()
+int md_gseed(void)
 {
+#ifndef _MSC_VER
 	return time(NULL);
+#else
+	{
+	time_t *tmp_null_ptr;
+	tmp_null_ptr = NULL;
+	return (int) time(tmp_null_ptr);
+	}
+#endif
 }
+
 
 /* md_exit():
  *
@@ -427,11 +437,11 @@ md_gseed()
  * hang when it should quit.
  */
 
-md_exit(status)
-int status;
+void md_exit(int status)
 {
 	exit(status);
 }
+
 
 /* md_lock():
  *
@@ -444,8 +454,7 @@ int status;
  * the lock is released.
  */
 
-md_lock(l)
-boolean l;
+void md_lock(boolean l)
 {
     l = l; /* make compiler happy */
 
@@ -468,6 +477,7 @@ boolean l;
 #endif
 }
 
+
 /* md_shell():
  *
  * This function spawns a shell for the user to use.  When this shell is
@@ -477,8 +487,11 @@ boolean l;
  * The effective user id is restored after the shell completes.
  */
 
-md_shell(shell)
-char *shell;
+void md_shell(const char *shell)
 {
-    spawnl(P_WAIT, shell, shell, NULL);
+#ifndef _MSC_VER
+	spawnl(P_WAIT, shell, shell, NULL);
+#else
+	(void) _spawnl(_P_WAIT, shell, shell, NULL);
+#endif
 }

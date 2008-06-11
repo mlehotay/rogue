@@ -51,10 +51,14 @@ boolean wizard = 0;
 extern boolean being_held, score_only, detect_monster, use_color;
 extern short cur_room;
 
-void bounce(short ball, short dir, short row, short col, short r);
+
+static object * get_zapped_monster(const short dir, short *row, short *col);	/*only used within this file*/
+static void zap_monster(object *monster, const unsigned short kind);	/*only used within this file*/
+static void tele_away(object *monster);		/*only used within this file*/
+static void wdrain_life(object *monster);	/*only used within this file*/
 
 
-zapp()
+void zapp(void)
 {
 	short wch;
 	boolean first_miss = 1;
@@ -108,10 +112,8 @@ zapp()
 	(void) reg_move();
 }
 
-object *
-get_zapped_monster(dir, row, col)
-short dir;
-short *row, *col;
+
+static object * get_zapped_monster(const short dir, short *row, short *col)	/*only used within this file*/
 {
 	short orow, ocol;
 
@@ -131,9 +133,8 @@ short *row, *col;
 	}
 }
 
-zap_monster(monster, kind)
-object *monster;
-unsigned short kind;
+
+static void zap_monster(object *monster, const unsigned short kind)	/*only used within this file*/
 {
 	short row, col;
 	object *nm;
@@ -198,8 +199,8 @@ unsigned short kind;
 	}
 }
 
-tele_away(monster)
-object *monster;
+
+static void tele_away(object *monster)	/*only used within this file*/
 {
 	short row, col;
 
@@ -217,7 +218,8 @@ object *monster;
 	}
 }
 
-wizardize()
+
+void wizardize(void)
 {
 	char buf[100];
 
@@ -227,7 +229,7 @@ wizardize()
 	} else {
 		if (get_input_line("wizard's password:", "", buf, "", 0, 0)) {
 			(void) xxx(1);
-			xxxx(buf, strlen(buf));
+			xxxx(buf, (short) strlen(buf));
 			if (!strncmp(buf, "\247\104\126\272\115\243\027", 7)) {
 				wizard = 1;
 				score_only = 1;
@@ -239,8 +241,8 @@ wizardize()
 	}
 }
 
-wdrain_life(monster)
-object *monster;
+
+static void wdrain_life(object *monster)	/*only used within this file*/
 {
 	short hp;
 	object *lmon, *nm;
@@ -272,7 +274,8 @@ object *monster;
 /* NS: Now restores original colors of the objects/terrain the bolt
  *	   hit along its path.
  */
-static void clear_wand_effect(short orow, short ocol, short row, short col, short dir) {
+static void clear_wand_effect(short orow, short ocol, const short row, const short col, const short dir)
+{
 	/* short ch; */
 
 	message("", 0); /* causes a --more-- message */
@@ -330,7 +333,9 @@ static void clear_wand_effect(short orow, short ocol, short row, short col, shor
  *		fire, ice blue for cold, yellow for everything else.  The
  *		function is no less hideous, though. :-)
  */
-void bounce(short ball, short dir, short row, short col, short r) {
+
+void bounce(const short ball, const short dir, short row, short col, short r)
+{
 	short orow, ocol, new_dir = -1;
 	char buf[DCOLS];
 	const char *s;
@@ -340,7 +345,7 @@ void bounce(short ball, short dir, short row, short col, short r) {
 	static short btime;
 
 	if (++r == 1) {
-		btime = get_rand(3, 6);
+		btime = (short) get_rand(3, 6);
 	} else if (r > btime) {
 		return;
 	}
@@ -395,7 +400,7 @@ void bounce(short ball, short dir, short row, short col, short r) {
 				} else if (monster->m_flags & FLAMES) {
 					damage = (monster->hp_to_kill / 10) + 1;
 				} else {
-					damage = get_rand((rogue.hp_current / 3), rogue.hp_max);
+					damage = (short) get_rand((rogue.hp_current / 3), rogue.hp_max);
 				}
 			} else {
 				damage = (monster->hp_to_kill / 2) + 1;
@@ -411,7 +416,7 @@ void bounce(short ball, short dir, short row, short col, short r) {
 					message("the monster is frozen", 0);
 					clear_wand_effect(orow, ocol, row, col, dir);
 					monster->m_flags |= (ASLEEP | NAPPING);
-					monster->nap_length = get_rand(3, 6);
+					monster->nap_length = (short) get_rand(3, 6);
 				} else {
 					damage = rogue.hp_current / 4;
 				}
@@ -431,10 +436,10 @@ void bounce(short ball, short dir, short row, short col, short r) {
 			message(buf, 0);
 			goto ND;
 		} else {
-			damage = get_rand(3, (3 * rogue.exp));
+			damage = (short) get_rand(3, (3 * rogue.exp));
 			if (ball == FIRE) {
 				damage = (damage * 3) / 2;
-				damage -= get_armor_class(rogue.armor);
+				damage -= (short) get_armor_class(rogue.armor);
 			}
 			sprintf(buf, "the %s hits you", s);
 			message(buf, 0);
@@ -446,7 +451,7 @@ void bounce(short ball, short dir, short row, short col, short r) {
 		short i, nrow, ncol, ndir;
 
 ND:		for (i = 0; i < 10; i++) {
-			ndir = get_rand(0, DIRS-1);
+			ndir = (short) get_rand(0, DIRS-1);
 			nrow = row;
 			ncol = col;
 			get_dir_rc(ndir, &nrow, &ncol, 1);

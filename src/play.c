@@ -54,7 +54,7 @@ extern short party_room, bear_trap;
 extern char hit_message[];
 extern boolean wizard, trap_door;
 
-play_level()
+void play_level(void)
 {
 	short ch;
 	int count;
@@ -82,7 +82,7 @@ CH:
 			rest((count > 0) ? count : 1);
 			break;
 		case 's':
-			search(((count > 0) ? count : 1), 0);
+			search( (short) ((count > 0) ? count : 1), 0);
 			break;
 		case 'i':
 			inventory(&rogue.pack, ALL_OBJECTS);
@@ -152,7 +152,7 @@ CH:
 			break;
 		case '\020':
 			do {
-				remessage(count++);
+				remessage( (short) count++);
 				ch = rgetchar();
 			} while (ch == '\020');
 			goto CMCH;
@@ -172,7 +172,7 @@ CH:
 			break;
 		case ')':
 		case ']':
-			inv_armor_weapon(ch == ')');
+			inv_armor_weapon( (boolean) (ch == ')') );
 			break;
 		case '=':
 			inv_rings();

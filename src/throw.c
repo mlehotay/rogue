@@ -50,7 +50,14 @@ extern short cur_room;
 extern char *curse_message;
 extern char hit_message[];
 
-throw()
+
+static int throw_at_monster(object *monster, object *weapon);	/*only used within this file*/
+static object * get_thrown_at_monster(const object *obj, short dir, short *row, short *col);	/*only used within this file*/
+static void flop_weapon(object *weapon, short row, short col);	/*only used within this file*/
+
+
+
+void throw(void)
 {
 	short wch, d;
 	boolean first_miss = 1;
@@ -113,8 +120,8 @@ throw()
 	vanish(weapon, 1, &rogue.pack);
 }
 
-throw_at_monster(monster, weapon)
-object *monster, *weapon;
+
+static int throw_at_monster(object *monster, object *weapon)	/*only used within this file*/
 {
 	short damage, hit_chance;
 	short t;
@@ -148,11 +155,8 @@ object *monster, *weapon;
 	return(1);
 }
 
-object *
-get_thrown_at_monster(obj, dir, row, col)
-object *obj;
-short dir;
-short *row, *col;
+
+static object * get_thrown_at_monster(const object *obj, short dir, short *row, short *col)	/*only used within this file*/
 {
 	short orow, ocol;
 	short i;
@@ -194,9 +198,8 @@ short *row, *col;
 	return(0);
 }
 
-flop_weapon(weapon, row, col)
-object *weapon;
-short row, col;
+
+static void flop_weapon(object *weapon, short row, short col)	/*only used within this file*/
 {
 	object *new_weapon, *monster;
 	short i = 0;
@@ -230,7 +233,7 @@ short row, col;
 			dungeon[row][col] &= (~MONSTER);
 			dcch.b16 = get_dungeon_char(row, col).b16;
 			if (mon) {
-				mch = mvinch(row, col);
+				mch = (short) mvinch(row, col);
 				if (monster = object_at(&level_monsters, row, col)) {
 					monster->trail_char.b16 = dcch.b16;
 				}
@@ -254,8 +257,8 @@ short row, col;
 	}
 }
 
-rand_around(i, r, c)
-short i, *r, *c;
+
+void rand_around(const short i, short *r, short *c)
 {
 	static char* pos = "\010\007\001\003\004\005\002\006\0";
 	static short row, col;
@@ -267,14 +270,14 @@ short i, *r, *c;
 		row = *r;
 		col = *c;
 
-		o = get_rand(1, 8);
+		o = (short) get_rand(1, 8);
 
 		for (j = 0; j < 5; j++) {
-			x = get_rand(0, 8);
+			x = (short) get_rand(0, 8);
 			y = (x + o) % 9;
 			t = pos[x];
 			pos[x] = pos[y];
-			pos[y] = t;
+			pos[y] = (char) t;
 		}
 	}
 	switch((short)pos[i]) {

@@ -72,14 +72,21 @@ extern boolean jump;
 #define OPTIONVALUE(x)		((x) ? "yes" : "no")
 
 
+static void player_init(void);						/* only used within this file*/
+static void do_args(const int argc, char *argv[]);		/* only used within this file */
+static void do_opts(void);					/*only used within this file*/
+static void env_get_value(char **s, char *e, const boolean add_blank);	/*only used within this file*/
+static void init_str(char **str, const char *dflt);	/*only used within this file*/
+
+
+
 
 /* NS 15 June 2003: Swapped options and arguments; it would seem to me that
  *		it's more natural to have the CLA's override the environment settings
  *		rather than the other way around.
  */
-init(argc, argv)
-int argc;
-char *argv[];
+
+int init(const int argc, char *argv[])
 {
 	int seed;
 
@@ -135,7 +142,9 @@ char *argv[];
     return (rest_file!=NULL);
 }
 
-make_filename(char **fname, char *name) {
+
+void make_filename(char **fname, const char *name)
+{
     char *p, *punct = "_^$~!#%&-{}()@'`";
 
     free(*fname);
@@ -148,7 +157,7 @@ make_filename(char **fname, char *name) {
 
     while(*p) {
         if(isalnum(*p) || strchr(punct, *p))
-            *p = toupper(*p);
+            *p = (char) toupper(*p);
         else
             *p = '_';
         p++;
@@ -156,7 +165,8 @@ make_filename(char **fname, char *name) {
     strcat(*fname, ".SAV");
 }
 
-player_init()
+
+static void player_init(void)	/* only used within this file*/
 {
 	object *obj;
 
@@ -196,7 +206,7 @@ player_init()
 	obj = alloc_object();
 	obj->what_is = WEAPON;
 	obj->which_kind = ARROW;
-	obj->quantity = get_rand(25, 35);
+	obj->quantity = (short) get_rand(25, 35);
 	obj->damage = "1d2";
 	obj->hit_enchant = 0;
 	obj->d_enchant = 0;
@@ -204,8 +214,8 @@ player_init()
 	(void) add_to_pack(obj, &rogue.pack, 1);
 }
 
-clean_up(estr)
-char *estr;
+
+void clean_up(const char *estr)
 {
 	if (save_is_interactive) {
 		if (init_curses) {
@@ -218,7 +228,8 @@ char *estr;
 	md_exit(0);
 }
 
-start_window()
+
+void start_window(void)
 {
 	crmode();
 	noecho();
@@ -228,14 +239,15 @@ start_window()
 	md_control_keybord(0);
 }
 
-stop_window()
+
+void stop_window(void)
 {
 	endwin();
 	md_control_keybord(1);
 }
 
-void
-byebye()
+
+void byebye(void)
 {
 	md_ignore_signals();
 	if (ask_quit) {
@@ -246,8 +258,8 @@ byebye()
 	md_heed_signals();
 }
 
-void
-onintr()
+
+void onintr(void)
 {
 	md_ignore_signals();
 	if (cant_int) {
@@ -259,17 +271,16 @@ onintr()
 	md_heed_signals();
 }
 
-void
-error_save()
+
+void error_save(void)
 {
 	save_is_interactive = 0;
 	save_into_file(_PATH_ERRORFILE);
 	clean_up("");
 }
 
-do_args(argc, argv)
-int argc;
-char *argv[];
+
+static void do_args(const int argc, char *argv[])		/* only used within this file */
 {
 	short i, j;
 
@@ -291,7 +302,8 @@ char *argv[];
 /* NS 15 June 2003 : Updated this to accept negative as well as positive
  *		flags.
  */
-do_opts()
+
+static void do_opts(void)	/*only used within this file*/
 {
 	char *eptr;
 	boolean optval;
@@ -353,7 +365,9 @@ do_opts()
 	init_str(&fruit, FRUIT_TYPE);
 }
 
-void strip(char *s, boolean add_blank) {
+
+void strip(char *s, const boolean add_blank) 
+{
     char *p = s;
 
     while(*p && isspace(*p))
@@ -376,9 +390,8 @@ void strip(char *s, boolean add_blank) {
     *(++p) = '\0';
 }
 
-env_get_value(s, e, add_blank)
-char **s, *e;
-boolean add_blank;
+
+static void env_get_value(char **s, char *e, const boolean add_blank)	/*only used within this file*/
 {
 	short i = 0;
 	char *t;
@@ -401,8 +414,8 @@ boolean add_blank;
 	strip(*s, add_blank);
 }
 
-init_str(str, dflt)
-char **str, *dflt;
+
+static void init_str(char **str, const char *dflt)	/*only used within this file*/
 {
 	if (!(*str)) {
 		*str = md_malloc(MAX_OPT_LEN + 2);

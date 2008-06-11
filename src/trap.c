@@ -72,8 +72,8 @@ extern short ring_exp;
 extern boolean sustain_strength;
 extern short blind;
 
-trap_at(row, col)
-register row, col;
+
+static short trap_at(const short row, const short col)	/*only used within this file*/
 {
 	short i;
 
@@ -85,8 +85,8 @@ register row, col;
 	return(NO_TRAP);
 }
 
-trap_player(row, col)
-short row, col;
+
+void trap_player(const short row, const short col)
 {
 	short t;
 
@@ -105,7 +105,7 @@ short row, col;
 		break;
 	case BEAR_TRAP:
 		message(trap_strings[(t*2)+1], 1);
-		bear_trap = get_rand(4, 7);
+		bear_trap = (short) get_rand(4, 7);
 		break;
 	case TELE_TRAP:
 		mvaddcch(rogue.row, rogue.col, get_terrain_char(TRAP));
@@ -137,7 +137,8 @@ short row, col;
 	}
 }
 
-add_traps()
+
+void add_traps(void)
 {
 	short i, n, tries = 0;
 	short row, col;
@@ -145,26 +146,26 @@ add_traps()
 	if (cur_level <= 2) {
 		n = 0;
 	} else if (cur_level <= 7) {
-		n = get_rand(0, 2);
+		n = (short) get_rand(0, 2);
 	} else if (cur_level <= 11) {
-		n = get_rand(1, 2);
+		n = (short) get_rand(1, 2);
 	} else if (cur_level <= 16) {
-		n = get_rand(2, 3);
+		n = (short) get_rand(2, 3);
 	} else if (cur_level <= 21) {
-		n = get_rand(2, 4);
+		n = (short) get_rand(2, 4);
 	} else if (cur_level <= (AMULET_LEVEL + 2)) {
-		n = get_rand(3, 5);
+		n = (short) get_rand(3, 5);
 	} else {
-		n = get_rand(5, MAX_TRAPS);
+		n = (short) get_rand(5, MAX_TRAPS);
 	}
 	for (i = 0; i < n; i++) {
-		traps[i].trap_type = get_rand(0, (TRAPS - 1));
+		traps[i].trap_type = (short) get_rand(0, (TRAPS - 1));
 
 		if ((i == 0) && (party_room != NO_ROOM)) {
 			do {
-				row = get_rand((rooms[party_room].top_row+1),
+				row = (short) get_rand((rooms[party_room].top_row+1),
 						(rooms[party_room].bottom_row-1));
-				col = get_rand((rooms[party_room].left_col+1),
+				col = (short) get_rand((rooms[party_room].left_col+1),
 						(rooms[party_room].right_col-1));
 				tries++;
 			} while (((dungeon[row][col] & (OBJECT|STAIRS|TRAP|TUNNEL)) ||
@@ -181,7 +182,7 @@ add_traps()
 	}
 }
 
-id_trap()
+void id_trap(void)
 {
 	short dir, row, col, d, t;
 
@@ -208,7 +209,8 @@ id_trap()
 	}
 }
 
-show_traps()
+
+void show_traps(void)
 {
 	short i, j;
 
@@ -221,9 +223,8 @@ show_traps()
 	}
 }
 
-search(n, is_auto)
-short n;
-boolean is_auto;
+
+void search(const short n, const boolean is_auto)
 {
 	short s, i, j, row, col, t;
 	short shown = 0, found = 0;
@@ -270,6 +271,11 @@ boolean is_auto;
 				}
 			}
 		}
+
+		/* This if (a && b) expression with assignment for second operand 'b' may
+		rely on strict right to left evaluation and may not work on all compilers
+		because the 'b' expression may or may not be evaluated if 'a' is false */
+
 		if ((!is_auto) && (reg_search = !reg_search)) {
 			(void) reg_move();
 		}

@@ -62,10 +62,9 @@ static int rand_deg = 31;
 static int rand_sep = 3;
 static long *end_ptr = &rntb[32];
 
-srrandom(x)
-int x;
+void srrandom(const int x)
 {
-	register int i;
+	int i;
 	long rrandom();
 
 	state[0] = (long) x;
@@ -81,8 +80,7 @@ int x;
 	}
 }
 
-long
-rrandom()
+long rrandom(void)
 {
 	long i;
 	
@@ -103,10 +101,9 @@ rrandom()
 	return(i);
 }
 
-get_rand(x, y)
-register int x, y;
+int get_rand(int x, int y)
 {
-	register int r, t;
+	int r, t;
 	long lr;
 
 	if (x > y) {
@@ -121,13 +118,12 @@ register int x, y;
 	return(r);
 }
 
-rand_percent(percentage)
-register int percentage;
+int rand_percent(const int percentage)
 {
 	return(get_rand(1, 100) <= percentage);
 }
 
-coin_toss()
+int coin_toss(void)
 {
 
 	return(((rrandom() & 01) ? 1 : 0));

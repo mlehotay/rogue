@@ -168,7 +168,19 @@ extern short party_room;
 extern boolean is_wood[];
 extern boolean use_color;
 
-put_objects()
+
+static void put_gold(void);			/* only used within this file */
+static void plant_gold(const short row, const short col, const boolean is_maze);			/* only used within this file */
+static void gr_scroll(object *obj);			/* only used within this file */
+static void gr_potion(object *obj);			/* only used within this file */
+static void gr_weapon(object *obj, const int assign_wk);/* only used within this file */	
+static void gr_armor(object *obj);			/* only used within this file */
+static void gr_wand(object *obj);			/* only used within this file */
+static void make_party(void);				/* only used within this file */
+static void rand_place(object *obj);		/* only used within this file */
+
+
+void put_objects(void)
 {
 	short i, n;
 	object *obj;
@@ -176,7 +188,7 @@ put_objects()
 	if (cur_level < max_level) {
 		return;
 	}
-	n = coin_toss() ? get_rand(2, 4) : get_rand(3, 5);
+	n = (short) (coin_toss() ? get_rand(2, 4) : get_rand(3, 5));
 	while (rand_percent(33)) {
 		n++;
 	}
@@ -190,7 +202,8 @@ put_objects()
 	put_gold();
 }
 
-put_gold()
+
+static void put_gold(void)			/* only used within this file */
 {
 	short i, j;
 	short row,col;
@@ -205,9 +218,9 @@ put_gold()
 		}
 		if (is_maze || rand_percent(GOLD_PERCENT)) {
 			for (j = 0; j < 50; j++) {
-				row = get_rand(rooms[i].top_row+1,
+				row = (short) get_rand(rooms[i].top_row+1,
 				rooms[i].bottom_row-1);
-				col = get_rand(rooms[i].left_col+1,
+				col = (short) get_rand(rooms[i].left_col+1,
 				rooms[i].right_col-1);
 				if ((dungeon[row][col] == FLOOR) ||
 					(dungeon[row][col] == TUNNEL)) {
@@ -219,16 +232,15 @@ put_gold()
 	}
 }
 
-plant_gold(row, col, is_maze)
-short row, col;
-boolean is_maze;
+
+static void plant_gold(const short row, const short col, const boolean is_maze)	/* only used within this file */
 {
 	object *obj;
 
 	obj = alloc_object();
 	obj->row = row; obj->col = col;
 	obj->what_is = GOLD;
-	obj->quantity = get_rand((2 * cur_level), (16 * cur_level));
+	obj->quantity = (short) get_rand((2 * cur_level), (16 * cur_level));
 	if (is_maze) {
 		obj->quantity += obj->quantity / 2;
 	}
@@ -236,8 +248,8 @@ boolean is_maze;
 	(void) add_to_pack(obj, &level_objects, 0);
 }
 
-place_at(obj, row, col)
-object *obj;
+
+void place_at(object *obj, const short row, const short col)
 {
 	obj->row = row;
 	obj->col = col;
@@ -245,10 +257,8 @@ object *obj;
 	(void) add_to_pack(obj, &level_objects, 0);
 }
 
-object *
-object_at(pack, row, col)
-register object *pack;
-short row, col;
+
+object * object_at(object *pack, const short row, const short col)
 {
 	object *obj = (object *) 0;
 
@@ -265,8 +275,8 @@ short row, col;
 	return(obj);
 }
 
-object *
-get_letter_object(ch)
+
+object * get_letter_object(const short ch)
 {
 	object *obj;
 
@@ -278,8 +288,8 @@ get_letter_object(ch)
 	return(obj);
 }
 
-free_stuff(objlist)
-object *objlist;
+
+void free_stuff(object *objlist)
 {
 	object *obj;
 
@@ -291,9 +301,8 @@ object *objlist;
 	}
 }
 
-char *
-name_of(obj)
-object *obj;
+
+char * name_of(const object *obj)
 {
 	char *retstring;
 
@@ -348,8 +357,8 @@ object *obj;
 	return(retstring);
 }
 
-object *
-gr_object()
+
+object * gr_object(void)
 {
 	object *obj;
 
@@ -387,13 +396,13 @@ gr_object()
 	return(obj);
 }
 
-unsigned short
-gr_what_is()
+
+unsigned short gr_what_is(void)
 {
 	short percent;
 	unsigned short what_is;
 
-	percent = get_rand(1, 91);
+	percent = (short) get_rand(1, 91);
 
 	if (percent <= 30) {
 		what_is = SCROL;
@@ -413,12 +422,12 @@ gr_what_is()
 	return(what_is);
 }
 
-gr_scroll(obj)
-object *obj;
+
+static void gr_scroll(object *obj)			/* only used within this file */
 {
 	short percent;
 
-	percent = get_rand(0, 91);
+	percent = (short) get_rand(0, 91);
 
 	obj->what_is = SCROL;
 
@@ -451,12 +460,12 @@ object *obj;
 	}
 }
 
-gr_potion(obj)
-object *obj;
+
+static void gr_potion(object *obj)	/* only used within this file */
 {
 	short percent;
 
-	percent = get_rand(1, 118);
+	percent = (short) get_rand(1, 118);
 
 	obj->what_is = POTION;
 
@@ -491,9 +500,8 @@ object *obj;
 	}
 }
 
-gr_weapon(obj, assign_wk)
-object *obj;
-int assign_wk;
+
+static void gr_weapon(object *obj, const int assign_wk)	/* only used within this file */	
 {
 	short percent;
 	short i;
@@ -501,19 +509,19 @@ int assign_wk;
 
 	obj->what_is = WEAPON;
 	if (assign_wk) {
-		obj->which_kind = get_rand(0, (WEAPONS - 1));
+		obj->which_kind = (unsigned short) get_rand(0, (WEAPONS - 1));
 	}
 	if ((obj->which_kind == ARROW) || (obj->which_kind == DAGGER) ||
 		(obj->which_kind == SHURIKEN) | (obj->which_kind == DART)) {
-		obj->quantity = get_rand(3, 15);
-		obj->quiver = get_rand(0, 126);
+		obj->quantity = (short) get_rand(3, 15);
+		obj->quiver = (short) get_rand(0, 126);
 	} else {
 		obj->quantity = 1;
 	}
 	obj->hit_enchant = obj->d_enchant = 0;
 
-	percent = get_rand(1, 96);
-	blessing = get_rand(1, 3);
+	percent = (short) get_rand(1, 96);
+	blessing = (short) get_rand(1, 3);
 
 	if (percent <= 16) {
 		increment = 1;
@@ -556,14 +564,14 @@ int assign_wk;
 	}
 }
 
-gr_armor(obj)
-object *obj;
+
+static void gr_armor(object *obj)		/* only used within this file */
 {
 	short percent;
 	short blessing;
 
 	obj->what_is = ARMOR;
-	obj->which_kind = get_rand(0, (ARMORS - 1));
+	obj->which_kind = (unsigned short) get_rand(0, (ARMORS - 1));
 	obj->class = obj->which_kind + 2;
 	if ((obj->which_kind == PLATE) || (obj->which_kind == SPLINT)) {
 		obj->class--;
@@ -571,8 +579,8 @@ object *obj;
 	obj->is_protected = 0;
 	obj->d_enchant = 0;
 
-	percent = get_rand(1, 100);
-	blessing = get_rand(1, 3);
+	percent = (short) get_rand(1, 100);
+	blessing = (short) get_rand(1, 3);
 
 	if (percent <= 16) {
 		obj->is_cursed = 1;
@@ -582,17 +590,16 @@ object *obj;
 	}
 }
 
-gr_wand(obj)
-object *obj;
+
+static void gr_wand(object *obj)			/* only used within this file */
 {
 	obj->what_is = WAND;
-	obj->which_kind = get_rand(0, (WANDS - 1));
-	obj->class = get_rand(3, 7);
+	obj->which_kind = (unsigned short) get_rand(0, (WANDS - 1));
+	obj->class = (short) get_rand(3, 7);
 }
 
-get_food(obj, force_ration)
-object *obj;
-boolean force_ration;
+
+void get_food(object *obj, const boolean force_ration)
 {
 	obj->what_is = FOOD;
 
@@ -603,7 +610,8 @@ boolean force_ration;
 	}
 }
 
-put_stairs()
+
+void put_stairs(void)
 {
 	short row, col;
 
@@ -611,8 +619,8 @@ put_stairs()
 	dungeon[row][col] |= STAIRS;
 }
 
-get_armor_class(obj)
-object *obj;
+
+int get_armor_class(const object *obj)
 {
 	if (obj) {
 		return(obj->class + obj->d_enchant);
@@ -620,8 +628,8 @@ object *obj;
 	return(0);
 }
 
-object *
-alloc_object()
+
+object * alloc_object(void)
 {
 	object *obj;
 
@@ -641,14 +649,15 @@ alloc_object()
 	return(obj);
 }
 
-free_object(obj)
-object *obj;
+
+void free_object(object *obj)
 {
 	obj->next_object = free_list;
 	free_list = obj;
 }
 
-make_party()
+
+static void make_party(void)			/* only used within this file */
 {
 	short n;
 
@@ -660,7 +669,8 @@ make_party()
 	}
 }
 
-show_objects()
+
+void show_objects(void)
 {
 	object *obj;
 	color_char rc;
@@ -680,7 +690,7 @@ show_objects()
 				monster->trail_char.b16 = rc.b16;
 			}
 		}
-		mc = mvinch(row, col);
+		mc = (short) mvinch(row, col);
 		if (((mc < 'A') || (mc > 'Z')) &&
 			((row != rogue.row) || (col != rogue.col))) {
 			mvaddcch(row, col, rc);
@@ -699,7 +709,8 @@ show_objects()
 	}
 }
 
-put_amulet()
+
+void put_amulet(void)
 {
 	object *obj;
 
@@ -708,8 +719,8 @@ put_amulet()
 	rand_place(obj);
 }
 
-rand_place(obj)
-object *obj;
+
+static void rand_place(object *obj)		/* only used within this file */
 {
 	short row, col;
 
@@ -717,7 +728,8 @@ object *obj;
 	place_at(obj, row, col);
 }
 
-c_object_for_wizard()
+
+void c_object_for_wizard(void)
 {
 	short ch, max, wk;
 	object *obj;
@@ -774,7 +786,7 @@ c_object_for_wizard()
 	if ((ch != ',') && (ch != ':')) {
 GIL:
 		if (get_input_line("which kind?", "", buf, "", 0, 1)) {
-			wk = get_number(buf);
+			wk = (short) get_number(buf);
 			if ((wk >= 0) && (wk <= max)) {
 				obj->which_kind = (unsigned short) wk;
 				if (obj->what_is == RING) {
@@ -801,7 +813,7 @@ GIL:
  *	   object types.  Under development.
  */
 
-discovery()
+void discovery(void)
 {
 	object *obj;
 	short i = 0, j, maxlen = 0, n;
@@ -845,7 +857,7 @@ discovery()
 
 			get_desc(obj, bwdesc);
 			(void) colorize(bwdesc, item_color, descs[i]+4);
-			if ((n = strlen(bwdesc)+4) > maxlen) {
+			if ((n = (short) strlen(bwdesc)+4) > maxlen) {
 				maxlen = n;
 			}
 		i++;

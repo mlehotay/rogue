@@ -85,7 +85,25 @@ extern boolean being_held, wizard, detect_monster;
 extern boolean see_invisible;
 extern short bear_trap, levitate, extra_hp, less_hp, cur_room;
 
-make_level()
+
+static void make_room(short rn, const short r1, const short r2, const short r3);	/* only used within this file */
+static int connect_rooms(const short room1, const short room2);		/* only used within this file */
+static void put_door(room *rm, const short dir, short *row, short *col);	/* only used within this file */
+static void draw_simple_passage(short row1, short col1, short row2, short col2, const short dir);	/* only used within this file */
+static int same_row(const short room1, const short room2);		/* only used within this file */
+static int same_col(const short room1, const short room2);		/* only used within this file */
+static void add_mazes(void);			/* only used within this file */
+static void fill_out_level(void);		/* only used within this file */
+static void fill_it(const short rn, const boolean do_rec_de);		/* only used within this file */
+static void recursive_deadend(const short rn, const short *offsets, short srow, short scol);	/* only used within this file */
+static boolean mask_room(const short rn, short *row, short *col, const unsigned short mask);	/* only used within this file */
+static void make_maze(const short r, const short c, const short tr, const short br, const short lc, const short rc);	/* only used within this file */
+static void hide_boxed_passage(short row1, short col1, short row2, short col2, const short n);	/* only used within this file */
+static short get_exp_level(const long e);		/* only used within this file */
+static void mix_random_rooms(void);		/* only used within this file */
+
+
+void make_level(void)
 {
 	short i, j;
 	short must_1, must_2, must_3;
@@ -97,7 +115,7 @@ make_level()
 	if (cur_level > max_level) {
 		max_level = cur_level;
 	}
-	must_1 = get_rand(0, 5);
+	must_1 = (short) get_rand(0, 5);
 
 	switch(must_1) {
 	case 0:
@@ -135,7 +153,7 @@ make_level()
 	if (rand_percent(PARTY_PCT)) {
 		party_room = 0;
 	}
-	big_room = ((party_room != NO_ROOM) && rand_percent(BIG_PARTY_PCT));
+	big_room = (boolean) ((party_room != NO_ROOM) && rand_percent(BIG_PARTY_PCT));
 	if (big_room) {
 		make_room(BIG_ROOM, 0, 0, 0);
 	} else {
@@ -183,8 +201,8 @@ make_level()
 	}
 }
 
-make_room(rn, r1, r2, r3)
-short rn, r1, r2, r3;
+
+static void make_room(short rn, const short r1, const short r2, const short r3)	/* only used within this file */
 {
 	short left_col, right_col, top_row, bottom_row;
 	short width, height;
@@ -247,18 +265,18 @@ short rn, r1, r2, r3;
 		bottom_row = DROWS - 2;
 		break;
 	case BIG_ROOM:
-		top_row = get_rand(MIN_ROW, MIN_ROW+5);
-		bottom_row = get_rand(DROWS-7, DROWS-2);
-		left_col = get_rand(0, 10);;
-		right_col = get_rand(DCOLS-11, DCOLS-1);
+		top_row = (short) get_rand(MIN_ROW, MIN_ROW+5);
+		bottom_row = (short) get_rand(DROWS-7, DROWS-2);
+		left_col = (short) get_rand(0, 10);;
+		right_col = (short) get_rand(DCOLS-11, DCOLS-1);
 		rn = 0;
 		goto B;
 	}
-	height = get_rand(4, (bottom_row - top_row + 1));
-	width = get_rand(7, (right_col - left_col - 2));
+	height = (short) get_rand(4, (bottom_row - top_row + 1));
+	width = (short) get_rand(7, (right_col - left_col - 2));
 
-	row_offset = get_rand(0, ((bottom_row - top_row) - height + 1));
-	col_offset = get_rand(0, ((right_col - left_col) - width + 1));
+	row_offset = (short) get_rand(0, ((bottom_row - top_row) - height + 1));
+	col_offset = (short) get_rand(0, ((right_col - left_col) - width + 1));
 
 	top_row += row_offset;
 	bottom_row = top_row + height - 1;
@@ -298,8 +316,8 @@ END:
 	rooms[rn].right_col = right_col;
 }
 
-connect_rooms(room1, room2)
-short room1, room2;
+
+static int connect_rooms(const short room1, const short room2)	/* only used within this file */
 {
 	short row1, col1, row2, col2, dir;
 
@@ -345,7 +363,8 @@ short room1, room2;
 	return(1);
 }
 
-clear_level()
+
+void clear_level(void)
 {
 	short i, j;
 
@@ -365,16 +384,16 @@ clear_level()
 		}
 	}
 	detect_monster = see_invisible = 0;
-	being_held = bear_trap = 0;
+/*	being_held = bear_trap = 0;		fix compiler warning */
+	being_held = 0;
+	bear_trap = 0;
 	party_room = NO_ROOM;
 	rogue.row = rogue.col = -1;
 	clear();
 }
 
-put_door(rm, dir, row, col)
-room *rm;
-short dir;
-short *row, *col;
+
+static void put_door(room *rm, const short dir, short *row, short *col)	/* only used within this file */
 {
 	short wall_width;
 
@@ -385,7 +404,7 @@ short *row, *col;
 	case DOWN:
 		*row = ((dir == UPWARD) ? rm->top_row : rm->bottom_row);
 		do {
-			*col = get_rand(rm->left_col+wall_width,
+			*col = (short) get_rand(rm->left_col+wall_width,
 				rm->right_col-wall_width);
 		} while (!(dungeon[*row][*col] & (HORWALL | TUNNEL)));
 		break;
@@ -393,7 +412,7 @@ short *row, *col;
 	case LEFT:
 		*col = (dir == LEFT) ? rm->left_col : rm->right_col;
 		do {
-			*row = get_rand(rm->top_row+wall_width,
+			*row = (short) get_rand(rm->top_row+wall_width,
 				rm->bottom_row-wall_width);
 		} while (!(dungeon[*row][*col] & (VERTWALL | TUNNEL)));
 		break;
@@ -408,8 +427,8 @@ short *row, *col;
 	rm->doors[dir/2].door_col = *col;
 }
 
-draw_simple_passage(row1, col1, row2, col2, dir)
-short row1, col1, row2, col2, dir;
+
+static void draw_simple_passage(short row1, short col1, short row2, short col2, const short dir)	/* only used within this file */
 {
 	short i, middle, t;
 
@@ -418,7 +437,7 @@ short row1, col1, row2, col2, dir;
 			swap(row1, row2);
 			swap(col1, col2);
 		}
-		middle = get_rand(col1+1, col2-1);
+		middle = (short) get_rand(col1+1, col2-1);
 		for (i = col1+1; i != middle; i++) {
 			dungeon[row1][i] = TUNNEL;
 		}
@@ -433,7 +452,7 @@ short row1, col1, row2, col2, dir;
 			swap(row1, row2);
 			swap(col1, col2);
 		}
-		middle = get_rand(row1+1, row2-1);
+		middle = (short) get_rand(row1+1, row2-1);
 		for (i = row1+1; i != middle; i++) {
 			dungeon[i][col1] = TUNNEL;
 		}
@@ -449,24 +468,27 @@ short row1, col1, row2, col2, dir;
 	}
 }
 
-same_row(room1, room2)
+
+static int same_row(const short room1, const short room2)	/* only used within this file */
 {
 	return((room1 / 3) == (room2 / 3));
 }
 
-same_col(room1, room2)
+
+static int same_col(const short room1, const short room2)	/* only used within this file */
 {
 	return((room1 % 3) == (room2 % 3));
 }
 
-add_mazes()
+
+static void add_mazes(void)	/* only used within this file */
 {
 	short i, j;
 	short start;
 	short maze_percent;
 
 	if (cur_level > 1) {
-		start = get_rand(0, (MAXROOMS-1));
+		start = (short) get_rand(0, (MAXROOMS-1));
 		maze_percent = (cur_level * 5) / 4;
 
 		if (cur_level > 15) {
@@ -477,20 +499,21 @@ add_mazes()
 			if (rooms[j].is_room & R_NOTHING) {
 				if (rand_percent(maze_percent)) {
 				rooms[j].is_room = R_MAZE;
-				make_maze(get_rand(rooms[j].top_row+1, rooms[j].bottom_row-1),
-					get_rand(rooms[j].left_col+1, rooms[j].right_col-1),
+				make_maze( (short) get_rand(rooms[j].top_row+1, rooms[j].bottom_row-1),
+					(short) get_rand(rooms[j].left_col+1, rooms[j].right_col-1),
 					rooms[j].top_row, rooms[j].bottom_row,
 					rooms[j].left_col, rooms[j].right_col);
 				hide_boxed_passage(rooms[j].top_row, rooms[j].left_col,
 					rooms[j].bottom_row, rooms[j].right_col,
-					get_rand(0, 2));
+					(short) get_rand(0, 2));
 				}
 			}
 		}
 	}
 }
 
-fill_out_level()
+
+static void fill_out_level(void)	/* only used within this file */
 {
 	short i, rn;
 
@@ -510,9 +533,8 @@ fill_out_level()
 	}
 }
 
-fill_it(rn, do_rec_de)
-int rn;
-boolean do_rec_de;
+
+static void fill_it(const short rn, const boolean do_rec_de)	/* only used within this file */
 {
 	short i, tunnel_dir, door_dir, drow, dcol;
 	short target_room, rooms_found = 0;
@@ -521,8 +543,8 @@ boolean do_rec_de;
 	boolean did_this = 0;
 
 	for (i = 0; i < 10; i++) {
-		srow = get_rand(0, 3);
-		scol = get_rand(0, 3);
+		srow = (short) get_rand(0, 3);
+		scol = (short) get_rand(0, 3);
 		t = offsets[srow];
 		offsets[srow] = offsets[scol];
 		offsets[scol] = t;
@@ -571,10 +593,8 @@ boolean do_rec_de;
 	}
 }
 
-recursive_deadend(rn, offsets, srow, scol)
-short rn;
-short *offsets;
-short srow, scol;
+
+static void recursive_deadend(const short rn, const short *offsets, short srow, short scol)	/* only used within this file */
 {
 	short i, de;
 	short drow, dcol, tunnel_dir;
@@ -606,11 +626,8 @@ short srow, scol;
 	}
 }
 
-boolean
-mask_room(rn, row, col, mask)
-short rn;
-short *row, *col;
-unsigned short mask;
+
+static boolean mask_room(const short rn, short *row, short *col, const unsigned short mask)	/* only used within this file */
 {
 	short i, j;
 
@@ -626,11 +643,12 @@ unsigned short mask;
 	return(0);
 }
 
-make_maze(r, c, tr, br, lc, rc)
-short r, c, tr, br, lc, rc;
+
+static void make_maze(const short r, const short  c, const short tr, const short br, const short lc, const short rc)	/* only used within this file */
 {
 	char dirs[4];
-	short i, t;
+/*	short i, t;	fix compiler warning - t moved down into for loop for swap() macro */
+	short i;
 
 	dirs[0] = UPWARD;
 	dirs[1] = DOWN;
@@ -642,9 +660,10 @@ short r, c, tr, br, lc, rc;
 	if (rand_percent(20)) {
 		for (i = 0; i < 10; i++) {
 			short t1, t2;
+			char t;		/* fix compiler warning */
 
-			t1 = get_rand(0, 3);
-			t2 = get_rand(0, 3);
+			t1 = (short) get_rand(0, 3);
+			t2 = (short) get_rand(0, 3);
 
 			swap(dirs[t1], dirs[t2]);
 		}
@@ -691,8 +710,8 @@ short r, c, tr, br, lc, rc;
 	}
 }
 
-hide_boxed_passage(row1, col1, row2, col2, n)
-short row1, col1, row2, col2, n;
+
+static void hide_boxed_passage(short row1, short col1, short row2, short col2, const short n)	/* only used within this file */
 {
 	short i, j, t;
 	short row, col, row_cut, col_cut;
@@ -714,8 +733,8 @@ short row1, col1, row2, col2, n;
 
 			for (i = 0; i < n; i++) {
 				for (j = 0; j < 10; j++) {
-					row = get_rand(row1 + row_cut, row2 - row_cut);
-					col = get_rand(col1 + col_cut, col2 - col_cut);
+					row = (short) get_rand(row1 + row_cut, row2 - row_cut);
+					col = (short) get_rand(col1 + col_cut, col2 - col_cut);
 					if (dungeon[row][col] == TUNNEL) {
 						dungeon[row][col] |= HIDDEN;
 						break;
@@ -726,8 +745,8 @@ short row1, col1, row2, col2, n;
 	}
 }
 
-put_player(nr)
-short nr;		/* try not to put in this room */
+
+void put_player(const short nr)		/* try not to put in this room */
 {
 	short rn = nr, misses;
 	short row, col;
@@ -758,7 +777,8 @@ short nr;		/* try not to put in this room */
 	mvaddcch(rogue.row, rogue.col, get_rogue_char());
 }
 
-drop_check()
+
+int drop_check(void)
 {
 	if (wizard) {
 		return(1);
@@ -774,7 +794,8 @@ drop_check()
 	return(0);
 }
 
-check_up()
+
+int check_up(void)
 {
 	if (!wizard) {
 		if (!(dungeon[rogue.row][rogue.col] & STAIRS)) {
@@ -796,9 +817,8 @@ check_up()
 	return(0);
 }
 
-add_exp(e, promotion)
-int e;
-boolean promotion;
+
+void add_exp(const int e, const boolean promotion)
 {
 	char mbuf[40];
 	short new_exp;
@@ -815,7 +835,7 @@ boolean promotion;
 			sprintf(mbuf, "welcome to level %d", i);
 			message(mbuf, 0);
 			if (promotion) {
-				hp = hp_raise();
+				hp = (short) hp_raise();
 				rogue.hp_current += hp;
 				rogue.hp_max += hp;
 			}
@@ -827,8 +847,8 @@ boolean promotion;
 	}
 }
 
-get_exp_level(e)
-long e;
+
+static short get_exp_level(const long e)	/* only used within this file */
 {
 	short i;
 
@@ -840,7 +860,8 @@ long e;
 	return(i+1);
 }
 
-hp_raise()
+
+int hp_raise(void)
 {
 	int hp;
 
@@ -848,7 +869,8 @@ hp_raise()
 	return(hp);
 }
 
-show_average_hp()
+
+void show_average_hp(void)
 {
 	char mbuf[80];
 	float real_average;
@@ -867,15 +889,16 @@ show_average_hp()
 	message(mbuf, 0);
 }
 
-mix_random_rooms()
+
+static void mix_random_rooms(void)	/* only used within this file */
 {
 	short i, t;
 	short x, y;
 
 	for (i = 0; i < (3 * MAXROOMS); i++) {
 		do {
-			x = get_rand(0, (MAXROOMS-1));
-			y = get_rand(0, (MAXROOMS-1));
+			x = (short) get_rand(0, (MAXROOMS-1));
+			y = (short) get_rand(0, (MAXROOMS-1));
 		} while (x == y);
 		swap(random_rooms[x], random_rooms[y]);
 	}

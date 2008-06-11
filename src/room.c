@@ -145,14 +145,19 @@ struct _screenchars scrTerrain[TERRAINTYPES] = {
 static struct _screenchars *disguise_chars[OBJECTTYPES + TERRAINTYPES];
 static short dc_len = -1;
 
-static init_groc_array();
+
+static void visit_rooms(const int rn);	/* only used within this file */
+static int get_oth_room(const short rn, short *row, short *col);		/* only used within this file */
+static void opt_show(const short i);		/* only used within this file */
+static void opt_erase(const short i);		/* only used within this file */
+static void opt_go(const short i);			/* only used within this file */
+static void init_groc_array(void);	/* only used within this file */
 
 
 
 /* ======================= FUNCTIONS ===================== */
 
-light_up_room(rn)
-int rn;
+void light_up_room(const int rn)
 {
 	short i, j;
 
@@ -186,7 +191,7 @@ int rn;
 }
 
 
-light_passage(row, col)
+void light_passage(const short row, const short col)
 {
 	short i, j, i_end, j_end;
 
@@ -205,8 +210,8 @@ light_passage(row, col)
 	}
 }
 
-darken_room(rn)
-short rn;
+
+void darken_room(const short rn)
 {
 	short i, j;
 
@@ -230,8 +235,7 @@ short rn;
 }
 
 
-
-color_char get_terrain_char(mask)
+color_char get_terrain_char(const unsigned short mask)
 {
 	color_char cc;
 	int i;
@@ -256,9 +260,9 @@ color_char get_terrain_char(mask)
 
 
 
-color_char get_dungeon_char(register row, register col)
+color_char get_dungeon_char(const short row, const short col)
 {
-	register unsigned short mask = dungeon[row][col];
+	unsigned short mask = dungeon[row][col];
 	color_char cc;
 
 	/* monsters are at the top layer and overlay all else */
@@ -337,7 +341,8 @@ color_char get_dungeon_char(register row, register col)
 /* Returns the screen character of the specified item.
  * NS: This now returns a 16-bit color_char.
  */
-color_char get_mask_char(register unsigned short mask)
+
+color_char get_mask_char(const unsigned short mask)
 {
 	color_char cc;
 	int i;
@@ -362,7 +367,8 @@ color_char get_mask_char(register unsigned short mask)
 
 /* Returns the rogue's character based on the current options settings.
  */
-color_char get_rogue_char()
+
+color_char get_rogue_char(void)
 {
 	color_char cc;
 
@@ -376,10 +382,11 @@ color_char get_rogue_char()
  *	redrawn, otherwise this function would be a magic map / detect
  *  monsters / detect things combination platter.
  */
-regenerate_screen()
+
+void regenerate_screen(void)
 {
-	int i, j;
-	register unsigned short mask;
+	short i, j;
+	unsigned short mask;
 	object *monster;
 
 	for (i=0; i<DROWS; i++) {
@@ -407,16 +414,14 @@ regenerate_screen()
 }
 
 
-gr_row_col(row, col, mask)
-short *row, *col;
-unsigned short mask;
+void gr_row_col(short *row, short *col, const unsigned short mask)
 {
 	short rn;
 	short r, c;
 
 	do {
-		r = get_rand(MIN_ROW, DROWS-2);
-		c = get_rand(0, DCOLS-1);
+		r = (short) get_rand(MIN_ROW, DROWS-2);
+		c = (short) get_rand(0, DCOLS-1);
 		rn = get_room_number(r, c);
 	} while ((rn == NO_ROOM) ||
 		(!(dungeon[r][c] & mask)) ||
@@ -428,18 +433,20 @@ unsigned short mask;
 	*col = c;
 }
 
-gr_room()
+
+short gr_room(void)
 {
 	short i;
 
 	do {
-		i = get_rand(0, MAXROOMS-1);
+		i = (short) get_rand(0, MAXROOMS-1);
 	} while (!(rooms[i].is_room & (R_ROOM | R_MAZE)));
 
 	return(i);
 }
 
-party_objects(rn)
+
+short party_objects(const short rn)
 {
 	short i, j, nf = 0;
 	object *obj;
@@ -448,15 +455,15 @@ party_objects(rn)
 
 	N = ((rooms[rn].bottom_row - rooms[rn].top_row) - 1) *
 		((rooms[rn].right_col - rooms[rn].left_col) - 1);
-	n =  get_rand(5, 10);
+	n =  (short) get_rand(5, 10);
 	if (n > N) {
 		n = N - 2;
 	}
 	for (i = 0; i < n; i++) {
 		for (j = found = 0; ((!found) && (j < 250)); j++) {
-			row = get_rand(rooms[rn].top_row+1,
+			row = (short) get_rand(rooms[rn].top_row+1,
 					   rooms[rn].bottom_row-1);
-			col = get_rand(rooms[rn].left_col+1,
+			col = (short) get_rand(rooms[rn].left_col+1,
 					   rooms[rn].right_col-1);
 			if ((dungeon[row][col] == FLOOR) || (dungeon[row][col] == TUNNEL)) {
 				found = 1;
@@ -471,8 +478,8 @@ party_objects(rn)
 	return(nf);
 }
 
-get_room_number(row, col)
-register row, col;
+
+short get_room_number(const short row, const short col)
 {
 	short i;
 
@@ -485,7 +492,8 @@ register row, col;
 	return(NO_ROOM);
 }
 
-is_all_connected()
+
+int is_all_connected(void)
 {
 	short i, starting_room;
 
@@ -506,8 +514,8 @@ is_all_connected()
 	return(1);
 }
 
-visit_rooms(rn)
-int rn;
+
+static void visit_rooms(const int rn)		/* only used within this file */
 {
 	short i;
 	short oth_rn;
@@ -522,10 +530,12 @@ int rn;
 	}
 }
 
+
 /* NS: Fixed a bug here; if the rogue read a magic mapping scroll while
  *		standing on a trap, he disappears from the screen.
  */
-draw_magic_map()
+
+void draw_magic_map(void)
 {
 	short i, j, ch;
 	color_char cch, occh;
@@ -537,7 +547,7 @@ draw_magic_map()
 		for (j = 0; j < DCOLS; j++) {
 			s = dungeon[i][j];
 			if (s & mask) {
-				ch = mvinch(i,j);
+				ch = (short) mvinch(i,j);
 				cch.b16 = mvincch(i,j).b16;
 				if ((ch == ' ')
 					|| ((ch >= 'A') && (ch <= 'Z'))
@@ -584,10 +594,8 @@ draw_magic_map()
 	mvaddcch(rogue.row, rogue.col, get_rogue_char());
 }
 
-dr_course(monster, entering, row, col)
-object *monster;
-boolean entering;
-short row, col;
+
+void dr_course(object *monster, const boolean entering, short row, short col)
 {
 	short i, j, k, rn;
 	short r, rr;
@@ -603,7 +611,7 @@ short row, col;
 
 	if (entering) {		/* entering room */
 		/* look for door to some other room */
-		r = get_rand(0, MAXROOMS-1);
+		r = (short) get_rand(0, MAXROOMS-1);
 		for (i = 0; i < MAXROOMS; i++) {
 			rr = (r + i) % MAXROOMS;
 			if ((!(rooms[rr].is_room & (R_ROOM | R_MAZE))) || (rr == rn)) {
@@ -658,8 +666,8 @@ short row, col;
 	}
 }
 
-get_oth_room(rn, row, col)
-short rn, *row, *col;
+
+static int get_oth_room(const short rn, short *row, short *col)		/* only used within this file */
 {
 	short d = -1;
 
@@ -686,7 +694,8 @@ short rn, *row, *col;
  *		feature in the options array only works for boolean
  *		options, but that's all we need at the moment.
  */
-edit_opts()
+
+void edit_opts(void)
 {
 	color_char save[NOPTS+1][DCOLS];
 	short i, j;
@@ -758,14 +767,14 @@ CH:
 				opt_erase(i);
 				do {
 					if ((ch >= ' ') && (ch <= '~') && (j < MAX_OPT_LEN)) {
-						buf[j++] = ch;
+						buf[j++] = (char) ch;
 						buf[j] = '\0';
 						addch(ch);
 					} else if ((ch == '\010') && (j > 0)) {
 						buf[--j] = '\0';
-						move(i, j + strlen(options[i].prompt));
+						move(i, j + (short) strlen(options[i].prompt));
 						addch(' ');
-						move(i, j + strlen(options[i].prompt));
+						move(i, j + (short) strlen(options[i].prompt));
 					}
 					refresh();
 					ch = rgetchar();
@@ -801,8 +810,8 @@ CH:
 	}
 }
 
-opt_show(i)
-int i;
+
+static void opt_show(const short i)
 {
 	char *s;
 	struct option *opt = &options[i];
@@ -817,8 +826,8 @@ int i;
 	addstr(s);
 }
 
-opt_erase(i)
-int i;
+
+static void opt_erase(const short i)
 {
 	struct option *opt = &options[i];
 
@@ -828,13 +837,14 @@ int i;
 	clrtoeol();
 }
 
-opt_go(i)
-int i;
+
+static void opt_go(const short i)	/* only used within this file */	
 {
-	move(i, strlen(options[i].prompt));
+	move(i, (short) strlen(options[i].prompt));
 }
 
-do_shell()
+
+void do_shell(void)
 {
 	char *sh;
 
@@ -842,7 +852,7 @@ do_shell()
 	if (!(sh = md_getenv("SHELL"))) {
 		sh = md_getenv("COMSPEC");
 	}
-	move(LINES-1, 0);
+	move( (short) (LINES-1), 0);
 	refresh();
 	stop_window();
 	printf("\n\nSpawning new shell. Type 'exit' to return to rogue...\n");
@@ -860,7 +870,8 @@ do_shell()
  * are honored.  All this work is to keep Xerocs hidden when the user
  * switches display options; there is surely an easier way to do it...
  */
-color_char gr_obj_char(int ix)
+
+color_char gr_obj_char(const int ix)
 {
 	struct _screenchars *sc;
 	color_char cc;
@@ -894,7 +905,8 @@ color_char gr_obj_char(int ix)
  * the life of the monster, while the actual character might if the
  * user switches display options on us.
  */
-gr_obj_index()
+
+int gr_obj_index(void)
 {
 	/* initialize groc array and check for failing case */
 	if (dc_len < 0) {
@@ -912,7 +924,8 @@ gr_obj_index()
 /* initializes the disguise/hallucination() array.  Called upon first use of
  * gr_obj_char() or gr_obj_index()
  */
-static init_groc_array()
+
+static void init_groc_array(void)	/* only used within this file */
 {
 	int i;
 

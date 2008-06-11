@@ -59,9 +59,11 @@ extern boolean use_doschars, use_color;
 extern short add_strength;
 extern short cur_level;
 
-message(msg, intrpt)
-char *msg;
-boolean intrpt;
+
+static void pad(const char *s, const short n);	 /*only used in this file*/
+
+
+void message(char *msg, const boolean intrpt)
 {
 	cant_int = 1;
 
@@ -87,7 +89,7 @@ boolean intrpt;
 	addch(' ');
 	refresh();
 	msg_cleared = 0;
-	msg_col = strlen(msg);
+	msg_col = (short) strlen(msg);
 
 	cant_int = 0;
 
@@ -97,8 +99,7 @@ boolean intrpt;
 	}
 }
 
-remessage(c)
-short c;
+void remessage(short c)
 {
 	if (imsg != -1) {
 		check_message();
@@ -113,7 +114,7 @@ short c;
 	}
 }
 
-check_message()
+void check_message(void)
 {
 	if (msg_cleared) {
 		return;
@@ -124,22 +125,29 @@ check_message()
 	msg_cleared = 1;
 }
 
+/*OLD_CODE - note - arguments (prompt, insert, buf) are in a different order
+in the argument list than in the argument type declaration below. Can this be
+an issue on some compilers?  The three calling files (object.c, pack.c and
+zap.c) all use 'buf' as the third argument.
+
 get_input_line(prompt, insert, buf, if_cancelled, add_blank, do_echo)
 char *prompt, *buf, *insert;
 char *if_cancelled;
 boolean add_blank;
 boolean do_echo;
+*/
+short get_input_line(char *prompt, char *insert, char *buf, char *if_cancelled, const boolean add_blank, const boolean do_echo)
 {
 	short ch;
 	short i = 0, n;
 
 	message(prompt, 0);
-	n = strlen(prompt);
+	n = (short) strlen(prompt);
 
 	if (insert[0]) {
 		mvaddstr(0, n + 1, insert);
 		(void) strcpy(buf, insert);
-		i = strlen(insert);
+		i = (short) strlen(insert);
 		move(0, (n + i + 1));
 		refresh();
 	}
@@ -147,7 +155,7 @@ boolean do_echo;
 	while (((ch = rgetchar()) != '\r') && (ch != '\n') && (ch != CANCEL)) {
 		if ((ch >= ' ') && (ch <= '~') && (i < MAX_TITLE_LENGTH-2)) {
 			if ((ch != ' ') || (i > 0)) {
-				buf[i++] = ch;
+				buf[i++] = (char) ch;
 				if (do_echo) {
 					addch(ch);
 				}
@@ -187,12 +195,11 @@ Level: 99 Gold: 999999 Hp: 999(999) Str: 99(99) Arm: 99 Exp: 21/10000000 Hungry
 0    5    1    5    2    5    3    5    4    5    5    5    6    5    7    5
 */
 
-print_stats(stat_mask)
-register stat_mask;
+void print_stats(const int stat_mask)
 {
 	char buf[16];
 	boolean label;
-	int row = DROWS - 1;
+	short row = DROWS - 1;
 	byte color;
 
 	label = (stat_mask & STAT_LABEL) ? 1 : 0;
@@ -275,13 +282,11 @@ register stat_mask;
 	refresh();
 }
 
-pad(s, n)
-char *s;
-short n;
+static void pad(const char *s, const short n)	/*only used in this file*/
 {
 	short i;
 
-	for (i = strlen(s); i < n; i++) {
+	for (i = (short) strlen(s); i < n; i++) {
 		addch(' ');
 	}
 }
@@ -289,7 +294,7 @@ short n;
 
 /*  NS: We convert to ASCII characters before saving, if necessary.
  */
-save_screen()
+void save_screen(void)
 {
 	FILE *fp;
 	short i, j;
@@ -307,7 +312,7 @@ save_screen()
 		for (i = 0; i < DROWS; i++) {
 			found_non_blank = 0;
 			for (j = (DCOLS - 1); j >= 0; j--) {
-				buf[j] = mvinch(i, j);
+				buf[j] = (char) mvinch(i, j);
 				if (!found_non_blank) {
 					if ((buf[j] != ' ') || (j == 0)) {
 						buf[j + ((j == 0) ? 0 : 1)] = 0;
@@ -329,28 +334,29 @@ save_screen()
 	}
 }
 
-sound_bell()
+void sound_bell(void)
 {
 	putchar(7);
 	fflush(stdout);
 }
 
-boolean
-is_digit(ch)
-short ch;
+boolean is_digit(const short ch)
 {
-	return((ch >= '0') && (ch <= '9'));
+/*	return((ch >= '0') && (ch <= '9'));	fix compiler warning */
+
+	if ((ch >= '0') && (ch <= '9'))
+		return(1);
+
+	return(0);
 }
 
-r_index(str, ch, last)
-char *str;
-int ch;
-boolean last;
+
+int r_index(const char *str, const int ch, const boolean last)
 {
 	int i = 0;
 
 	if (last) {
-		for (i = strlen(str) - 1; i >= 0; i--) {
+		for (i = (int) (strlen(str) - 1); i >= 0; i--) {
 			if (str[i] == ch) {
 				return(i);
 			}
