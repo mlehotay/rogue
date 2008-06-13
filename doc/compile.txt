@@ -27,9 +27,9 @@ To compile a 32-bit Windows console application with Visual C++
   1) cd to the sys subdirectory and run setup msc
   2) cd to the top directory and run nmake
 
-That's it. If everything went as it should have your executable will be in the
+That's it. If everything went as it should, your executable will be in the
 newly created exe directory.
 
 If you experience any problems email the rogueclone-devel mailing list at
 rogueclone-devel@lists.sourceforge.net and ask for help. You can view the list
-archives at http://sourceforge.net/mailarchive/forum.php?forum_id=37360
+archives at http://sourceforge.net/mailarchive/forum.php?forum_name=rogueclone-devel

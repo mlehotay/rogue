@@ -11,7 +11,7 @@ The files rogue.html and guide.html contain all the information you need to
 play. Help is also available within the game by using the '?' and '/' commands.
 
 To get the latest version of Rogue Clone IV, visit
-http://rogueclone.sourceforge.net on the web. At our web site you will find news
+http://rogueclone.sourceforge.net on the web. At the web site you will find news
 about current and upcoming releases, information about the Rogue Clone IV
 mailing lists, forms for submitting patches and bug reports, nightly development
 snapshots, and up-to-the-minute source code from our CVS repository.
