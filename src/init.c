@@ -247,7 +247,12 @@ void stop_window(void)
 }
 
 
+
+#ifdef _MSC_VER
+void byebye(int foo)
+#else
 void byebye(void)
+#endif
 {
 	md_ignore_signals();
 	if (ask_quit) {
@@ -259,7 +264,11 @@ void byebye(void)
 }
 
 
+#ifdef _MSC_VER
+void onintr(int foo)
+#else
 void onintr(void)
+#endif
 {
 	md_ignore_signals();
 	if (cant_int) {

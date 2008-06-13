@@ -355,7 +355,7 @@ MORE:
 						}
 					}
 				}
-				mvaddstr(rows - 1, 0, need_two_screens ? more : press_space);
+				mvaddstr((short) (rows - 1), 0, need_two_screens ? more : press_space);
 				refresh();
 				wait_for_ack();
 

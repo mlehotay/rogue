@@ -272,10 +272,6 @@ void search(const short n, const boolean is_auto)
 			}
 		}
 
-		/* This if (a && b) expression with assignment for second operand 'b' may
-		rely on strict right to left evaluation and may not work on all compilers
-		because the 'b' expression may or may not be evaluated if 'a' is false */
-
 		if ((!is_auto) && (reg_search = !reg_search)) {
 			(void) reg_move();
 		}

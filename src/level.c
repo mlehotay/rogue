@@ -171,21 +171,21 @@ void make_level(void)
 			i = random_rooms[j];
 
 			if (i < (MAXROOMS-1)) {
-				(void) connect_rooms(i, i+1);
+				(void) connect_rooms(i, (short) (i+1));
 			}
 			if (i < (MAXROOMS-3)) {
-				(void) connect_rooms(i, i+3);
+				(void) connect_rooms(i, (short) (i+3));
 			}
 			if (i < (MAXROOMS-2)) {
 				if (rooms[i+1].is_room & R_NOTHING) {
-					if (connect_rooms(i, i+2)) {
+					if (connect_rooms(i, (short) (i+2))) {
 						rooms[i+1].is_room = R_CROSS;
 					}
 				}
 			}
 			if (i < (MAXROOMS-6)) {
 				if (rooms[i+3].is_room & R_NOTHING) {
-					if (connect_rooms(i, i+6)) {
+					if (connect_rooms(i, (short) (i+6))) {
 						rooms[i+3].is_room = R_CROSS;
 					}
 				}
@@ -676,7 +676,7 @@ static void make_maze(const short r, const short  c, const short tr, const short
 				(dungeon[r-1][c-1] != TUNNEL) &&
 				(dungeon[r-1][c+1] != TUNNEL) &&
 				(dungeon[r-2][c] != TUNNEL)) {
-				make_maze((r-1), c, tr, br, lc, rc);
+				make_maze((short) (r-1), c, tr, br, lc, rc);
 			}
 			break;
 		case DOWN:
@@ -685,7 +685,7 @@ static void make_maze(const short r, const short  c, const short tr, const short
 				(dungeon[r+1][c-1] != TUNNEL) &&
 				(dungeon[r+1][c+1] != TUNNEL) &&
 				(dungeon[r+2][c] != TUNNEL)) {
-				make_maze((r+1), c, tr, br, lc, rc);
+				make_maze((short) (r+1), c, tr, br, lc, rc);
 			}
 			break;
 		case LEFT:
@@ -694,7 +694,7 @@ static void make_maze(const short r, const short  c, const short tr, const short
 				(dungeon[r-1][c-1] != TUNNEL) &&
 				(dungeon[r+1][c-1] != TUNNEL) &&
 				(dungeon[r][c-2] != TUNNEL)) {
-				make_maze(r, (c-1), tr, br, lc, rc);
+				make_maze(r, (short) (c-1), tr, br, lc, rc);
 			}
 			break;
 		case RIGHT:
@@ -703,7 +703,7 @@ static void make_maze(const short r, const short  c, const short tr, const short
 				(dungeon[r-1][c+1] != TUNNEL) &&
 				(dungeon[r+1][c+1] != TUNNEL) &&
 				(dungeon[r][c+2] != TUNNEL)) {
-				make_maze(r, (c+1), tr, br, lc, rc);
+				make_maze(r, (short) (c+1), tr, br, lc, rc);
 			}
 			break;
 		}

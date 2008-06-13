@@ -296,7 +296,7 @@ void read_scroll(void)
 	if (id_scrolls[obj->which_kind].id_status != CALLED) {
 		id_scrolls[obj->which_kind].id_status = IDENTIFIED;
 	}
-	vanish(obj, (obj->which_kind != SLEEP), &rogue.pack);
+	vanish(obj, (short) (obj->which_kind != SLEEP), &rogue.pack);
 }
 
 /* vanish() does NOT handle a quiver of weapons with more than one

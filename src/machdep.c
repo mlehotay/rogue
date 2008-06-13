@@ -333,9 +333,8 @@ char * md_gln(void)
  * delaying execution, which is useful to this program at some times.
  */
 
-void md_sleep(int nsecs)
+void md_sleep(const int nsecs)
 {
-    nsecs = nsecs; /* make compiler happy */    
 #if 0
     clock_t alarm = clock() + nsecs*CLK_TCK;
 

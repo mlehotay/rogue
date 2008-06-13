@@ -301,7 +301,7 @@ static void read_pack(object *pack, FILE *fp, const boolean is_rogue) /* only us
 					do_wield(new_obj);
 			} else if (new_obj->in_use_flags & (ON_EITHER_HAND)) {
 				do_put_on(new_obj,
-					((new_obj->in_use_flags & ON_LEFT_HAND) ? 1 : 0));
+					(unsigned char) ((new_obj->in_use_flags & ON_LEFT_HAND) ? 1 : 0));
 			}
 		}
 		pack->next_object = new_obj;

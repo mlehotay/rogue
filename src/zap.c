@@ -445,7 +445,7 @@ void bounce(const short ball, const short dir, short row, short col, short r)
 			message(buf, 0);
 			clear_wand_effect(orow, ocol, row, col, dir);
 			rogue_damage(damage, (object *) 0,
-					((ball == FIRE) ? KFIRE : HYPOTHERMIA));
+					(short) ((ball == FIRE) ? KFIRE : HYPOTHERMIA));
 		}
 	} else {
 		short i, nrow, ncol, ndir;

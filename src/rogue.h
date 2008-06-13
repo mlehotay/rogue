@@ -623,10 +623,15 @@ void make_filename(char **fname, const char *name);
 void clean_up(const char *estr);
 void start_window(void);
 void stop_window(void);
-void byebye(void);
-void onintr(void);
 void error_save(void);
 void strip(char *s, const boolean add_blank);
+#ifdef _MSC_VER
+void onintr(int foo);
+void byebye(int foo);
+#else
+void onintr(void);
+void byebye(void);
+#endif
 
 
 	/* invent.c */

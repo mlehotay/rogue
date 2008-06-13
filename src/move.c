@@ -194,7 +194,7 @@ void multiple_move_rogue(const short dirch)
 		do {
 			row = rogue.row;
 			col = rogue.col;
-			if (((m = one_move_rogue((dirch + 96), 1)) == MOVE_FAILED) ||
+			if (((m = one_move_rogue((short) (dirch + 96), 1)) == MOVE_FAILED) ||
 				(m == STOPPED_ON_SOMETHING) ||
 				interrupted) {
 				break;
@@ -202,7 +202,7 @@ void multiple_move_rogue(const short dirch)
 		} while (!next_to_something(row, col));
 		if (	(!interrupted) && passgo && (m == MOVE_FAILED) &&
 				(dungeon[rogue.row][rogue.col] & TUNNEL)) {
-			turn_passage(dirch + 96, 0);
+			turn_passage((short) (dirch + 96), 0);
 		}
 		break;
 	case 'H':
@@ -213,11 +213,11 @@ void multiple_move_rogue(const short dirch)
 	case 'Y':
 	case 'U':
 	case 'N':
-		while ((!interrupted) && (one_move_rogue((dirch + 32), 1) == MOVED)) ;
+		while ((!interrupted) && (one_move_rogue((short) (dirch + 32), 1) == MOVED)) ;
 
 		if (	(!interrupted) && passgo &&
 				(dungeon[rogue.row][rogue.col] & TUNNEL)) {
-			turn_passage(dirch + 32, 1);
+			turn_passage((short) (dirch + 32), 1);
 		}
 		break;
 	}
@@ -649,24 +649,24 @@ static void turn_passage(const short dir, const boolean fast)	/* only used withi
 	short crow = rogue.row, ccol = rogue.col, turns = 0;
 	short ndir = 0;	/* fix compiler warning */
 
-	if ((dir != 'h') && can_turn(crow, ccol + 1)) {
+	if ((dir != 'h') && can_turn(crow, (short) (ccol + 1))) {
 		turns++;
 		ndir = 'l';
 	}
-	if ((dir != 'l') && can_turn(crow, ccol - 1)) {
+	if ((dir != 'l') && can_turn(crow, (short) (ccol - 1))) {
 		turns++;
 		ndir = 'h';
 	}
-	if ((dir != 'k') && can_turn(crow + 1, ccol)) {
+	if ((dir != 'k') && can_turn((short) (crow + 1), ccol)) {
 		turns++;
 		ndir = 'j';
 	}
-	if ((dir != 'j') && can_turn(crow - 1, ccol)) {
+	if ((dir != 'j') && can_turn((short) (crow - 1), ccol)) {
 		turns++;
 		ndir = 'k';
 	}
 	if (turns == 1) {
-		multiple_move_rogue(ndir - (fast ? 32 : 96));
+		multiple_move_rogue((short) (ndir - (fast ? 32 : 96)));
 	}
 }
 

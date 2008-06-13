@@ -267,18 +267,18 @@ void cough_up(const object *monster)
 
 	for (n = 0; n <= 5; n++) {
 		for (i = -n; i <= n; i++) {
-			if (try_to_cough(row+n, col+i, obj)) {
+			if (try_to_cough((short)(row+n), (short)(col+i), obj)) {
 				return;
 			}
-			if (try_to_cough(row-n, col+i, obj)) {
+			if (try_to_cough((short)(row-n), (short)(col+i), obj)) {
 				return;
 			}
 		}
 		for (i = -n; i <= n; i++) {
-			if (try_to_cough(row+i, col-n, obj)) {
+			if (try_to_cough((short)(row+i), (short)(col-n), obj)) {
 				return;
 			}
-			if (try_to_cough(row+i, col+n, obj)) {
+			if (try_to_cough((short)(row+i), (short)(col+n), obj)) {
 				return;
 			}
 		}

@@ -95,7 +95,12 @@ void message(char *msg, const boolean intrpt)
 
 	if (did_int) {
 		did_int = 0;
+#ifdef _MSC_VER
+		onintr(0);
+#else
 		onintr();
+#endif
+
 	}
 }
 
@@ -145,10 +150,10 @@ short get_input_line(char *prompt, char *insert, char *buf, char *if_cancelled, 
 	n = (short) strlen(prompt);
 
 	if (insert[0]) {
-		mvaddstr(0, n + 1, insert);
+		mvaddstr(0, (short) (n + 1), insert);
 		(void) strcpy(buf, insert);
 		i = (short) strlen(insert);
-		move(0, (n + i + 1));
+		move(0, (short) (n + i + 1));
 		refresh();
 	}
 
@@ -163,8 +168,8 @@ short get_input_line(char *prompt, char *insert, char *buf, char *if_cancelled, 
 		}
 		if ((ch == '\b') && (i > 0)) {
 			if (do_echo) {
-				mvaddch(0, i + n, ' ');
-				move(MIN_ROW-1, i+n);
+				mvaddch(0, (short) (i + n), ' ');
+				move((short) (MIN_ROW-1), (short) (i+n));
 			}
 			i--;
 		}

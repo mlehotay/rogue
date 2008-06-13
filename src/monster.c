@@ -183,7 +183,7 @@ void mv_mons(void)
 		return;
 	}
 
-	monster = level_monsters.next_monster, *test_mons;	/* Comma seperates statements but what does '*test_mons;" do? */
+	monster = level_monsters.next_monster;
 
 	while (monster) {
 		next_monster = monster->next_monster;
@@ -401,7 +401,7 @@ void mv_1_monster(object *monster, short row, short col)
 NEXT_TRY:	n = (short) get_rand(0, 5);
 		switch(n) {
 		case 0:
-			if (!tried[n] && mtry(monster, row, monster->col-1)) {
+			if (!tried[n] && mtry(monster, row, (short) (monster->col-1))) {
 				goto O;
 			}
 			break;
@@ -411,12 +411,12 @@ NEXT_TRY:	n = (short) get_rand(0, 5);
 			}
 			break;
 		case 2:
-			if (!tried[n] && mtry(monster, row, monster->col+1)) {
+			if (!tried[n] && mtry(monster, row, (short) (monster->col+1))) {
 				goto O;
 			}
 			break;
 		case 3:
-			if (!tried[n] && mtry(monster, monster->row-1, col)) {
+			if (!tried[n] && mtry(monster, (short) (monster->row-1), col)) {
 				goto O;
 			}
 			break;
@@ -426,7 +426,7 @@ NEXT_TRY:	n = (short) get_rand(0, 5);
 			}
 			break;
 		case 5:
-			if (!tried[n] && mtry(monster, monster->row+1, col)) {
+			if (!tried[n] && mtry(monster, (short) (monster->row+1), col)) {
 				goto O;
 			}
 			break;
@@ -507,7 +507,8 @@ void move_mon_to(object *monster, const short row, const short col)
 			mvaddch(mrow, mcol, ' ');
 	}
 	if (dungeon[row][col] & DOOR) {
-			dr_course(monster, ((dungeon[mrow][mcol] & TUNNEL) ? 1 : 0),
+			dr_course(monster,
+				(unsigned char) ((dungeon[mrow][mcol] & TUNNEL) ? 1 : 0),
 				row, col);
 	} else {
 		monster->row = row;

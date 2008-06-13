@@ -323,7 +323,7 @@ void put_scores(const object *monster, const short other)
 			scores[i][0] = ' ';
 			scores[i][1] = (char) (i + '1');
 		}
-		mvaddstr(i+10, 0, scores[i]);
+		mvaddstr((short)(i+10), 0, scores[i]);
 		if (rank < 10) {
 			xxxx(scores[i], 80);
 			fwrite(scores[i], sizeof(char), 80, fp);
@@ -570,7 +570,7 @@ static void center_in_color(const short row, char *buf, const byte color)	/* onl
 
 	margin = (short) ((DCOLS - strlen(buf)) / 2);
 	mvaddstr_in_color(row, margin, buf,
-					  (use_color) ? color : MAKE_COLOR(WHITE,BLACK));
+					  (unsigned char) ((use_color) ? color : MAKE_COLOR(WHITE,BLACK)));
 }
 
 

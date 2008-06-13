@@ -203,8 +203,9 @@ void light_passage(const short row, const short col)
 
 	for (i = ((row > MIN_ROW) ? -1 : 0); i <= i_end; i++) {
 		for (j = ((col > 0) ? -1 : 0); j <= j_end; j++) {
-			if (can_move(row, col, row+i, col+j)) {
-				mvaddcch(row+i, col+j, get_dungeon_char(row+i, col+j));
+			if (can_move(row, col, (short) (row+i), (short) (col+j))) {
+				mvaddcch((short) (row+i), (short) (col+j),
+					get_dungeon_char((short) (row+i), (short) (col+j)));
 			}
 		}
 	}
@@ -772,9 +773,9 @@ CH:
 						addch(ch);
 					} else if ((ch == '\010') && (j > 0)) {
 						buf[--j] = '\0';
-						move(i, j + (short) strlen(options[i].prompt));
+						move(i, (short) (j + strlen(options[i].prompt)));
 						addch(' ');
-						move(i, j + (short) strlen(options[i].prompt));
+						move(i, (short) (j + strlen(options[i].prompt)));
 					}
 					refresh();
 					ch = rgetchar();
@@ -832,8 +833,8 @@ static void opt_erase(const short i)
 	struct option *opt = &options[i];
 
 	mvaddstr_in_color(i, 0, opt->prompt,
-					  use_color ? MAKE_COLOR(CYAN, BLACK) :
-					  			  MAKE_COLOR(WHITE,BLACK));
+					  (unsigned char) (use_color ? MAKE_COLOR(CYAN, BLACK) :
+					  			  MAKE_COLOR(WHITE,BLACK)));
 	clrtoeol();
 }
 

@@ -685,8 +685,8 @@ static void put_cursor(int row, int col)	/* only used within this file */
 #ifdef _MSC_VER
     COORD coord;
 
-    coord.X = (SHORT) col;
-    coord.Y = (SHORT) row;
+    coord.X = (short) col;
+    coord.Y = (short) row;
 
     SetConsoleCursorPosition(hStdOut, coord);
 #else
