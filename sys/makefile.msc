@@ -1,7 +1,7 @@
 # NMAKE Makefile for VC98
 
-CFLAGS = /nologo /O2 /W2 #want /W4 
-LDFLAGS = /nologo /incremental:no /warn:3
+CFLAGS = /nologo /O2 /W3 #want /W4 
+LDFLAGS = /nologo /incremental:no /warn:3 /nodefaultlib:oldnames
 LDLIBS =
 
 src = src
