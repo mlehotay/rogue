@@ -8,6 +8,7 @@ To Do
 
 Changelog
 ---------
+10:35 PM 2008-06-12 - fixed linker warning
  8:03 PM 2008-06-12 - lots of casting to fix compiler warnings
  1:11 AM 2008-06-11 - merged ansi-2-1-0 branch onto main trunk in cvs
 10:55 PM 2008-06-10 - created visual studio 6.0 project & workspace files
