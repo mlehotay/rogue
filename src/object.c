@@ -512,7 +512,7 @@ static void gr_weapon(object *obj, const int assign_wk)	/* only used within this
 		obj->which_kind = (unsigned short) get_rand(0, (WEAPONS - 1));
 	}
 	if ((obj->which_kind == ARROW) || (obj->which_kind == DAGGER) ||
-		(obj->which_kind == SHURIKEN) | (obj->which_kind == DART)) {
+		(obj->which_kind == SHURIKEN) || (obj->which_kind == DART)) {
 		obj->quantity = (short) get_rand(3, 15);
 		obj->quiver = (short) get_rand(0, 126);
 	} else {
