@@ -55,7 +55,7 @@ char hunger_str[8] = "";
 char *more = "-more-";
 
 extern boolean cant_int, did_int, interrupted, save_is_interactive;
-extern boolean use_doschars, use_color;
+extern boolean use_doschars, use_color, beep;
 extern short add_strength;
 extern short cur_level;
 
@@ -341,7 +341,9 @@ void save_screen(void)
 
 void sound_bell(void)
 {
-	putchar(7);
+	if(beep) {
+		putchar(7);
+	}
 	fflush(stdout);
 }
 

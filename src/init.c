@@ -62,6 +62,7 @@ boolean display_skull = 1;
 boolean passgo = 0;
 boolean use_doschars = 1;
 boolean use_color = 1;
+boolean beep = 0;
 
 char *byebye_string = "Okay, bye bye!";
 
@@ -356,6 +357,8 @@ static void do_opts(void)	/*only used within this file*/
 					use_doschars = optval;
 				} else if (!strncmp(eptr, "color", 5)) {
 					use_color = optval;
+				} else if (!strncmp(eptr, "beep", 4)) {
+					beep = optval;
 				}
 			}
 

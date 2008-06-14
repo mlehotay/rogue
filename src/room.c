@@ -52,14 +52,14 @@ boolean rooms_visited[MAXROOMS];
 extern short blind;
 extern short halluc;
 extern boolean detect_monster, jump, passgo, display_skull;
-extern boolean use_doschars, use_color;
+extern boolean use_doschars, use_color, beep;
 extern char *login_name, *fruit, *press_space;
 
 /* don't modify use_colors until entire screen is redrawn, otherwise
  * some lines are displayed in color and others in black & white */
 static boolean color_kludge;
 
-#define NOPTS 7
+#define NOPTS 8
 
 struct option {
 	char *prompt;
@@ -88,6 +88,10 @@ struct option {
 	{
 		"Use extended ASCII graphics (\"PCgraphics\"): ",
 		1, (char **) 0, &use_doschars, 0, 1
+	},
+	{
+		"Use the terminal bell (\"beep\"): ",
+		1, (char **) 0, &beep, 0, 0
 	},
 	{
 		"Name (\"name\"): ",

@@ -79,6 +79,7 @@ extern boolean passgo;
 extern boolean display_skull;
 extern boolean use_color;
 extern boolean use_doschars;
+extern boolean beep;
 extern char *fruit;
 
 extern boolean msg_cleared;
@@ -173,6 +174,7 @@ void save_into_file(char *sfile)
 	r_write(fp, (char *) &display_skull, sizeof(display_skull));
 	r_write(fp, (char *) &use_color, sizeof(use_color));
 	r_write(fp, (char *) &use_doschars, sizeof(use_doschars));
+	r_write(fp, (char *) &beep, sizeof(beep));
 	write_string(fruit, fp);
 	md_gct(&rt_buf);
 	rt_buf.second += 10;		/* allow for some processing time */
@@ -247,6 +249,7 @@ void restore(char *fname)
 	r_read(fp, (char *) &display_skull, sizeof(display_skull));
 	r_read(fp, (char *) &use_color, sizeof(use_color));
 	r_read(fp, (char *) &use_doschars, sizeof(use_doschars));
+	r_read(fp, (char *) &beep, sizeof(beep));
 	read_string(fruit, fp);
 	r_read(fp, (char *) &saved_time, sizeof(saved_time));
 
