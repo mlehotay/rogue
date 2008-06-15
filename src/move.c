@@ -533,42 +533,16 @@ void rest(const int count)
 	}
 }
 
-
+/*
+ * Patch [ 1077029 ] move.c - gr_dir() optimization
+ * Submitted By: Nobody/Anonymous - nobody
+ */
 static short gr_dir(void)	/* only used within this file */
 {
-	short d;
-
-	d = (short) get_rand(1, 8);
-
-	switch(d) {
-		case 1:
-			d = 'j';
-			break;
-		case 2:
-			d = 'k';
-			break;
-		case 3:
-			d = 'l';
-			break;
-		case 4:
-			d = 'h';
-			break;
-		case 5:
-			d = 'y';
-			break;
-		case 6:
-			d = 'u';
-			break;
-		case 7:
-			d = 'b';
-			break;
-		case 8:
-			d = 'n';
-			break;
-	}
-	return(d);
+	char return_list[8] = "jklhyubn";
+	short d = get_rand(0, 7);
+	return ( return_list[d] );
 }
-
 
 static void heal(void)	/* only used within this file */
 {
