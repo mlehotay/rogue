@@ -887,3 +887,95 @@ void mv_aquatars(void)
 		monster = monster->next_monster;
 	}
 }
+
+#ifdef KNOWN_ITEMS
+/*---------------------------------------------------------------*/
+
+struct known_monsters_type_struct
+	{
+	unsigned short 	is_known;		/* 0 if not known, if >= 1 then this is the
+									   number of times this item is known (e.g., so you
+									   could use this as the number of times this item
+									   was used */
+
+	char monster_name[MAX_KNOWN_ITEM_STRING_LENGTH + 1];  /* user friendly printable string */
+	};
+
+typedef struct known_monsters_type_struct KNOWN_MONSTERS_STRUCT;
+
+static KNOWN_MONSTERS_STRUCT KNOWN_MONSTERS[MONSTERS];
+
+
+/*---------------------------------------------------------------*/
+void known_monsters_initialize(void)
+{
+	extern char *m_names[];
+
+	char *monster_names_list_tmp[MONSTERS];
+	int ctr;
+
+	/* create a temporary list of monster names and then sort */
+
+	for (ctr = 0; ctr < MONSTERS; ctr++)
+		monster_names_list_tmp[ctr] = m_names[ctr];
+
+	for (ctr = 0; ctr < MONSTERS -1;ctr++)
+	{
+		int ctr2;
+		for (ctr2 = ctr + 1; ctr2 < MONSTERS;ctr2++)
+		{
+			const int c = strcmp(monster_names_list_tmp[ctr], monster_names_list_tmp[ctr2]);
+
+			if (c > 0)
+			{
+				char *p = monster_names_list_tmp[ctr];
+
+				monster_names_list_tmp[ctr] = monster_names_list_tmp[ctr2];
+				monster_names_list_tmp[ctr2] = p;
+			}
+		}
+	}
+
+
+	/*------------------------------------------------------*/
+	for (ctr = 0; ctr < MONSTERS; ctr++)
+	{
+		KNOWN_MONSTERS[ctr].is_known = 0;
+
+		strncpy(KNOWN_MONSTERS[ctr].monster_name, monster_names_list_tmp[ctr], MAX_KNOWN_ITEM_STRING_LENGTH);
+	}
+
+}
+
+/*---------------------------------------------------------------*/
+void known_monsters_add_killed_monster(const char *monster_name)
+{
+	int ctr;
+
+	for (ctr = 0;ctr < MONSTERS; ctr++)
+	{
+		if (strcmp(monster_name, KNOWN_MONSTERS[ctr].monster_name) == 0)
+		{
+			KNOWN_MONSTERS[ctr].is_known++;
+		}
+
+	}
+}
+
+
+/*-------------------------------------------------------*/
+void known_monsters_print_known_monsters(void)
+{
+	int ctr;
+
+	for (ctr = 0;ctr < MONSTERS;ctr++)
+	{
+		const unsigned short killed_count = KNOWN_MONSTERS[ctr].is_known;
+
+		if (killed_count > 0)
+			{
+			printf("%s, %u killed\n", KNOWN_MONSTERS[ctr].monster_name, killed_count);
+			}
+	}	
+}
+#endif /* KNOWN_ITEMS */

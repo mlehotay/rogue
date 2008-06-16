@@ -296,6 +296,11 @@ int mon_damage(object *monster, const short damage)
 		fight_monster = 0;
 		cough_up(monster);
 		mn = mon_name(monster);
+
+#ifdef KNOWN_ITEMS
+		known_monsters_add_killed_monster(mn);	/*add killed monster*/
+#endif
+
 		sprintf(hit_message+strlen(hit_message), "defeated the %s", mn);
 		message(hit_message, 1);
 		hit_message[0] = 0;

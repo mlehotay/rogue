@@ -94,6 +94,11 @@ int init(const int argc, char *argv[])
 	do_opts();
 	do_args(argc, argv);
 
+#ifdef KNOWN_ITEMS
+	known_items_initialize();
+	known_monsters_initialize();
+#endif
+
 	if (!score_only && !rest_file) {
         FILE *fp;
 

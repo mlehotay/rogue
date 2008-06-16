@@ -890,3 +890,257 @@ void discovery(void)
 	}
 }
 #endif
+
+#ifdef KNOWN_ITEMS
+/*
+ * Patch [ 1079744 ] Known Items
+ * Submitted By: steve_ued
+ */
+
+struct known_items_struct_details
+	{
+	unsigned short 	is_known;		/* 0 if not known, if >= 1 then this is the
+									   number of times this item is known (e.g., so you
+									   could use this as the number of times this item
+									   was used */
+
+	unsigned short	known_item_what_is;		/* what type of object (wand, scroll, potion, etc) */
+	unsigned short 	known_item_type;		/* subtype type of the item */
+	char 			printable_string[MAX_KNOWN_ITEM_STRING_LENGTH + 1];  /* user friendly printable string */
+	};
+
+typedef struct known_items_struct_details known_items_struct;
+
+#define MAX_KNOWN_ITEMS 250
+
+static known_items_struct 	known_items_list[MAX_KNOWN_ITEMS];
+static unsigned int 		number_of_known_items = 0;
+
+/*-------------------------------------------------------------------------------------------*/
+static void known_items_initialize_single_item(
+					const unsigned short tmp_known_item_what_is, 
+					const unsigned short tmp_known_item_type,
+					const char *tmp_item_printable_string)
+{
+	known_items_struct *tmp;
+
+	/* make sure that there is room to add the item to the list */
+	if (number_of_known_items == MAX_KNOWN_ITEMS)
+		{
+		return;	/*do nothing - this should eventually cause some error message */
+		}
+
+	/* make sure that printable string length is not too long */
+
+
+	tmp = &known_items_list[number_of_known_items];
+
+	++number_of_known_items;
+
+	tmp->is_known = 0;		
+	tmp->known_item_what_is = tmp_known_item_what_is;
+	tmp->known_item_type = tmp_known_item_type;
+	
+	strncpy(tmp->printable_string, tmp_item_printable_string, MAX_KNOWN_ITEM_STRING_LENGTH);
+
+	tmp->printable_string[ MAX_KNOWN_ITEM_STRING_LENGTH ] = 0;	/* force the null termination of string*/
+}
+
+
+
+/*-------------------------------------------------------------------------------------------*/
+void known_items_initialize(void)
+{
+	known_items_initialize_single_item(SCROL, PROTECT_ARMOR, "Scroll of Protect Armor");
+	known_items_initialize_single_item(SCROL, HOLD_MONSTER, "Scroll of Hold Monster");
+	known_items_initialize_single_item(SCROL, ENCH_WEAPON, "Scroll of Enchant Weapon");
+	known_items_initialize_single_item(SCROL, ENCH_ARMOR, "Scroll of Enchant Armor");
+	known_items_initialize_single_item(SCROL, IDENTIFY, "Scroll of Identify");
+	known_items_initialize_single_item(SCROL, TELEPORT, "Scroll of Teleport");
+	known_items_initialize_single_item(SCROL, SLEEP, "Scroll of Sleep");
+	known_items_initialize_single_item(SCROL, SCARE_MONSTER, "Scroll of Scare Monster");
+	known_items_initialize_single_item(SCROL, REMOVE_CURSE, "Scroll of Remove Curse");
+	known_items_initialize_single_item(SCROL, CREATE_MONSTER, "Scroll of Create Monster");
+	known_items_initialize_single_item(SCROL, AGGRAVATE_MONSTER, "Scroll of Aggravate Monster");
+	known_items_initialize_single_item(SCROL, MAGIC_MAPPING, "Scroll of Magic Mapping");
+	known_items_initialize_single_item(SCROL, CON_MON, "Scroll of Confuse Monster");
+
+	known_items_initialize_single_item(POTION, INCREASE_STRENGTH, "Potion of Increase Strength");
+	known_items_initialize_single_item(POTION, RESTORE_STRENGTH, "Potion of Restore Strength");
+	known_items_initialize_single_item(POTION, HEALING, "Potion of Healing");
+	known_items_initialize_single_item(POTION, EXTRA_HEALING, "Potion of Extra Healing");
+	known_items_initialize_single_item(POTION, POISON, "Potion of Poison");
+	known_items_initialize_single_item(POTION, RAISE_LEVEL, "Potion of Raise Level");
+	known_items_initialize_single_item(POTION, BLINDNESS, "Potion of Blindness");
+	known_items_initialize_single_item(POTION, HALLUCINATION, "Potion of Hallucination");
+	known_items_initialize_single_item(POTION, DETECT_MONSTER, "Potion of Detect Monsters");
+	known_items_initialize_single_item(POTION, DETECT_OBJECTS, "Potion of Detect Objects");
+	known_items_initialize_single_item(POTION, CONFUSION, "Potion of Confusion");
+	known_items_initialize_single_item(POTION, LEVITATION, "Potion of Levitation");
+	known_items_initialize_single_item(POTION, HASTE_SELF, "Potion of Haste Self");
+	known_items_initialize_single_item(POTION, SEE_INVISIBLE, "Potion of See Invisible");
+
+	known_items_initialize_single_item(WAND, TELE_AWAY, "Wand of Teleport Away");
+	known_items_initialize_single_item(WAND, SLOW_MONSTER, "Wand of Slow Monster");
+	known_items_initialize_single_item(WAND, INVISIBILITY, "Wand of Invisibility");
+	known_items_initialize_single_item(WAND, POLYMORPH, "Wand of Polymorph");
+	known_items_initialize_single_item(WAND, HASTE_MONSTER, "Wand of Haste Monster");
+	known_items_initialize_single_item(WAND, MAGIC_MISSILE, "Wand of Magic Missile");
+	known_items_initialize_single_item(WAND, CANCELLATION, "Wand of Cancellation");
+	known_items_initialize_single_item(WAND, DO_NOTHING, "Wand of Do Nothing");
+	known_items_initialize_single_item(WAND, DRAIN_LIFE, "Wand of Drain Life");
+	known_items_initialize_single_item(WAND, COLD, "Wand of Cold");
+	known_items_initialize_single_item(WAND, FIRE, "Wand of Fire");
+
+	known_items_initialize_single_item(RING, STEALTH, "Ring of Stealth");
+	known_items_initialize_single_item(RING, R_TELEPORT, "Ring of Teleport");
+	known_items_initialize_single_item(RING, REGENERATION, "Ring of Regeneration");
+	known_items_initialize_single_item(RING, SLOW_DIGEST, "Ring of Slow Digestion");
+	known_items_initialize_single_item(RING, ADD_STRENGTH, "Ring of Add Strength");
+	known_items_initialize_single_item(RING, SUSTAIN_STRENGTH, "Ring of Sustain Strength");
+	known_items_initialize_single_item(RING, DEXTERITY, "Ring of Dexterity");
+	known_items_initialize_single_item(RING, ADORNMENT, "Ring of Adornment");
+	known_items_initialize_single_item(RING, R_SEE_INVISIBLE, "Ring of See Invisible");
+	known_items_initialize_single_item(RING, MAINTAIN_ARMOR, "Ring of Maintain Armor");
+	known_items_initialize_single_item(RING, SEARCHING, "Ring of Searching");
+}
+
+
+/*----------------------------------------------------------------*/
+void known_items_add_new_known_item(const unsigned short what_is, 
+									const unsigned short item_type)
+{
+	unsigned int ctr;
+	unsigned short tmp_what_is;
+
+	/*we only want the item type what is field for usable items*/
+	
+	tmp_what_is = what_is & (SCROL | POTION | WEAPON | ARMOR | WAND | RING);
+
+	for (ctr = 0; ctr < number_of_known_items; ctr++)
+	{
+		if (known_items_list[ctr].known_item_what_is == tmp_what_is)
+		if (known_items_list[ctr].known_item_type == item_type)
+		{
+			known_items_list[ctr].is_known++;
+			return;
+		}
+	}
+	/*-------------------------------------------------*/
+	/*should never get here*/
+}
+
+
+void do_show_items_known()
+{
+	short current_row_number, row_ctr, col_ctr, something_is_known;
+	unsigned int ctr;
+	color_char save[DROWS][DCOLS];
+
+	something_is_known = 0;
+	for (ctr = 0; ctr < number_of_known_items; ctr++)
+		{
+		if (known_items_list[ctr].is_known)
+			{
+			something_is_known = 1;
+			break;
+			}
+		}
+
+
+	if (something_is_known == 0)
+		{
+		check_message();
+		message("You have not found anything yet...", 0);
+		refresh();
+		return;
+		}
+
+	/*save current screen*/
+	for (row_ctr = 0; row_ctr < DROWS; row_ctr++) 
+			{
+			for (col_ctr = 0; col_ctr < DCOLS; col_ctr++) 
+				{
+				save[row_ctr][col_ctr] = mvincch(row_ctr, col_ctr);
+				}
+		}
+
+
+	clear();	/*clear entire screen*/
+
+	check_message();
+	message("List of things known...", 0);
+
+	current_row_number = 0;
+
+	for (ctr = 0; ctr < number_of_known_items; ctr++)
+		{
+		if (known_items_list[ctr].is_known)
+			{
+			char *p = known_items_list[ctr].printable_string;
+
+			++current_row_number;
+			mvaddstr(current_row_number, 5, p);
+
+			if ((current_row_number == DROWS) || (ctr + 1 == number_of_known_items))
+				{		/*give a more prompt*/
+				char *m = more;
+				if (ctr + 1 == number_of_known_items)
+					m = press_space;
+
+				mvaddstr(current_row_number, 0, m);
+				current_row_number = 0;
+
+				refresh();
+				wait_for_ack();
+
+				if (rgetchar() == CANCEL)
+					break;
+
+				clear();	/*clear entire screen*/
+				}
+			}
+		}
+
+	/*-------------------------------------------------*/
+	if (current_row_number > 0)
+		{				/*new items known on screen - need to give 'press space to contiue' prompt*/
+		++current_row_number;
+		mvaddstr(current_row_number, 0, press_space);
+
+		refresh();
+		wait_for_ack();
+		}
+
+	clear();
+	for (row_ctr = 0; row_ctr < DROWS; row_ctr++) 
+		{
+		move(row_ctr, 0);
+
+		for (col_ctr = 0; col_ctr < DCOLS; col_ctr++) 
+			{
+			addcch(save[row_ctr][col_ctr]);
+			}
+		}
+
+	redraw();	/*redraw screen*/
+}
+
+
+
+
+/*----------------------------------------------------------------*/
+void known_items_print_known_items(void)
+{
+	unsigned int ctr;
+
+	for (ctr = 0; ctr < number_of_known_items; ctr++)
+	{
+		if (known_items_list[ctr].is_known)
+		{
+			printf(known_items_list[ctr].printable_string);
+			printf("\n");
+		}
+		}
+}
+#endif /* KNOWN_ITEMS */

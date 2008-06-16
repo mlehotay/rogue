@@ -94,6 +94,11 @@ void quaff(void)
 		message("you can't drink that", 0);
 		return;
 	}
+
+#ifdef KNOWN_ITEMS
+	known_items_add_new_known_item(obj->what_is, obj->which_kind);
+#endif
+
 	switch(obj->which_kind) {
 		case INCREASE_STRENGTH:
 			message("you feel stronger now, what bulging muscles!",
@@ -210,6 +215,11 @@ void read_scroll(void)
 		message("you can't read that", 0);
 		return;
 	}
+
+#ifdef KNOWN_ITEMS
+	known_items_add_new_known_item(obj->what_is, obj->which_kind);
+#endif
+
 	switch(obj->which_kind) {
 		case SCARE_MONSTER:
 			message("you hear a maniacal laughter in the distance",
@@ -395,7 +405,12 @@ AGAIN:
 	if (obj->what_is & (SCROL | POTION | WEAPON | ARMOR | WAND | RING)) {
 		id_table = get_id_table(obj);
 		id_table[obj->which_kind].id_status = IDENTIFIED;
+
+#ifdef KNOWN_ITEMS
+		known_items_add_new_known_item(obj->what_is, obj->which_kind);
+#endif
 	}
+
 	get_desc(obj, desc);
 	message(desc, 0);
 }

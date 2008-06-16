@@ -186,6 +186,11 @@ CH:
 		case '?':
 			id_com();
 			break;
+#ifdef KNOWN_ITEMS
+		case '\\':
+			do_show_items_known();
+			break;
+#endif
 		case '!':
 			do_shell();
 			break;

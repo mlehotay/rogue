@@ -1,5 +1,6 @@
 Changelog
 ---------
+12:35 AM 2008-06-16 - applied steve_ued's patch [ 1079744 ] Known Items
 12:32 AM 2008-06-14 - applied patch [ 1077029 ] move.c - gr_dir() optimization
  7:29 PM 2008-06-13 - added the nobeep option
 10:35 PM 2008-06-12 - fixed linker warning

@@ -509,6 +509,9 @@ extern object level_monsters;
 
 #define MIN_ROW 1
 
+#ifdef KNOWN_ITEMS
+#define MAX_KNOWN_ITEM_STRING_LENGTH 	60
+#endif
 
 /* external routine declarations.
  */
@@ -635,6 +638,9 @@ void byebye(void);
 
 
 	/* invent.c */
+#ifdef KNOWN_ITEMS
+extern char *press_space;
+#endif
 void inventory(object *pack, const unsigned short mask);
 void id_com(void);
 void mix_colors(void);
@@ -645,7 +651,6 @@ void single_inv(const short ichar);
 struct id * get_id_table(const object *obj);
 void inv_armor_weapon(const boolean is_weapon);
 void id_type(void);
-
 
 	/* level.c */
 void make_level(void);
@@ -679,6 +684,9 @@ void md_shell(const char *shell);
 
 
 	/* message.c */
+#ifdef KNOWN_ITEMS
+extern char *more;
+#endif
 void message(char *msg, const boolean intrpt);
 void remessage(short c);
 void check_message(void);
@@ -709,7 +717,11 @@ int rogue_can_see(const short row, const short col);
 void aggravate(void);
 boolean mon_sees(const object *monster, const short row, const short col);
 void mv_aquatars(void);
-
+#ifdef KNOWN_ITEMS
+void known_monsters_initialize(void);
+void known_monsters_add_killed_monster(const char *monster_name);
+void known_monsters_print_known_monsters(void);
+#endif
 
 	/* move.c */
 short one_move_rogue(short dirch, const short pickup);
@@ -743,7 +755,13 @@ void c_object_for_wizard(void);
 #ifdef DISCOVERY
 	void discovery(void);
 #endif
-
+#ifdef KNOWN_ITEMS
+void known_items_initialize(void);
+void known_items_add_new_known_item(const unsigned short tmp_known_item_what_type,
+									const unsigned short item_type);
+void do_show_items_known(void);
+void known_items_print_known_items(void);
+#endif
 
 	/* pack.c */
 object * add_to_pack(object *obj, object *pack, const int condense);

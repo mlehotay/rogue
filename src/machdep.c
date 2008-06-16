@@ -438,6 +438,11 @@ int md_gseed(void)
 
 void md_exit(int status)
 {
+#ifdef KNOWN_ITEMS
+	known_items_print_known_items();
+	known_monsters_print_known_monsters();
+#endif
+
 	exit(status);
 }
 
